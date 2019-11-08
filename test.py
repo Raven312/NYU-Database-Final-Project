@@ -1,4 +1,4 @@
-# Initial File
+# Initial File test
 inputString = input("Please input:")
 
 a = inputString.index("(")
