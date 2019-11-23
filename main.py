@@ -1,5 +1,6 @@
 from databaseStructure import MyHashTable
 from databaseStructure import MyBTreeTable
+from generalFunction import GeneralFunction
 
 # This table is for mapping the user input variable and actual table
 parameter_assignment_table = {}
@@ -9,31 +10,6 @@ database_type = input('Please input \'hash\' or \'btree\' to choose the database
 if database_type.lower() not in ['hash', 'btree']:
     print('Invalid input, database type will be default: hash')
     database_type = 'hash'
-
-
-# Get the action information from action.
-# type input_string: str - user input string
-# rtype assign_name: str
-# rtype function_name: str
-# rtype parameters: array
-def get_input_action(input_string):
-    input_string = input_string.rstrip().strip().replace(" ", "")
-    # '(' and ':=' are two key symbol that must exist in the input.
-    if '(' in input_string and ':=' in input_string:
-
-        # Get the table name.
-        assign_name_index = input_string.index(":=")
-        assign_name = input_string[0:assign_name_index]
-
-        # Get the function name.
-        parameter_start_index = input_string.index("(")
-        function_name = input_string[assign_name_index + 2:parameter_start_index]
-
-        # Get the parameter for this function.
-        parameters = input_string[parameter_start_index + 1:len(input_string) - 1].split(',')
-
-        return assign_name, function_name, parameters
-    return None, None, None
 
 
 # Perform the action from the std input
@@ -68,20 +44,34 @@ def perform_input_action(assign_name, function_name, variables):
         temp_new_table.metadata = meta_data
         temp_new_table.main_table = new_dict
 
+    # Action: select
+    if function_name == 'select':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table[table_parameter]
+        meta_data, new_dict = temp_old_table.select(variables[1])
+        temp_new_table = parameter_assignment_table[assign_name]
+        temp_new_table.metadata = meta_data
+        temp_new_table.main_table = new_dict
+
 
 # __TODO__ Below block is for testing purpose only
-inputString = 'R1 := inputfromfile(sales1)'
-assignName, actionName, actionParameters = get_input_action(inputString)
+inputString = 'R := inputfromfile(sales1)'
+assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+
+perform_input_action(assignName, actionName, actionParameters)
+
+inputString = 'R1 := select(R, (time > 49) and (time < 51) )'
+assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 
 perform_input_action(assignName, actionName, actionParameters)
 
 inputString = 'R2 := project(R1, saleid, qty, pricerange)'
-assignName, actionName, actionParameters = get_input_action(inputString)
+assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 
 perform_input_action(assignName, actionName, actionParameters)
 
-rTable = parameter_assignment_table['R2']
-print(rTable.main_table['36'].value)
+rTable = parameter_assignment_table['R1'].main_table
+print(len(rTable))
 
 
 
