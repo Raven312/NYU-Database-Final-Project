@@ -12,6 +12,10 @@ if database_type.lower() not in ['hash', 'btree']:
 
 
 # Get the action information from action.
+# type input_string: str - user input string
+# rtype assign_name: str
+# rtype function_name: str
+# rtype parameters: array
 def get_input_action(input_string):
     input_string = input_string.rstrip().strip().replace(" ", "")
     # '(' and ':=' are two key symbol that must exist in the input.
@@ -33,6 +37,9 @@ def get_input_action(input_string):
 
 
 # Perform the action from the std input
+# type assign_name: str
+# type function_name: str
+# type parameters: array
 def perform_input_action(assign_name, function_name, variables):
     function_name = function_name.lower()
 
@@ -44,13 +51,12 @@ def perform_input_action(assign_name, function_name, variables):
             parameter_assignment_table[assign_name] = MyBTreeTable.MyBTreeTable()
 
     # Below actions follow the steps :
-    # Get the table from assignment table -> perform the action -> put it back to assignment table
+    # Get the table from assignment table -> perform the action
 
     # Action: inputfromfile
     if function_name == 'inputfromfile':
         temp_table = parameter_assignment_table[assign_name]
         temp_table.input_from_file(variables, True)
-        parameter_assignment_table[assign_name] = temp_table
 
     # Action: project
     if function_name == 'project':
@@ -59,8 +65,8 @@ def perform_input_action(assign_name, function_name, variables):
         # Passing parameter except the first value as first value is table_parameter
         meta_data, new_dict = temp_old_table.project(variables[1::])
         temp_new_table = parameter_assignment_table[assign_name]
-        temp_new_table.meta_data = meta_data
-        temp_new_table.main_hash_dict = new_dict
+        temp_new_table.metadata = meta_data
+        temp_new_table.main_table = new_dict
 
 
 # __TODO__ Below block is for testing purpose only
@@ -74,8 +80,8 @@ assignName, actionName, actionParameters = get_input_action(inputString)
 
 perform_input_action(assignName, actionName, actionParameters)
 
-rTable = parameter_assignment_table['R1']
-print(rTable)
+rTable = parameter_assignment_table['R2']
+print(rTable.main_table['36'].value)
 
 
 
