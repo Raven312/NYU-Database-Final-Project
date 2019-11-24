@@ -1,5 +1,6 @@
 from databaseStructure import DbObject
 from generalFunction import GeneralFunction
+from ConditionObject import ConditionObject
 import time
 
 
@@ -31,6 +32,25 @@ class DatabaseFunction:
         GeneralFunction.print_time(start, time.time())
         return require_metadata, new_dict
 
+    # Select this table based on the condition.
+    # type parameter: str - conditions
+    # rtype require_metadata: array - return the original metadata
+    # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
+    def select(self, parameter):
+        start = time.time()
+
+        new_dict = {}
+        conditions = GeneralFunction.transform_condition_to_object(parameter)
+        for cond in conditions:
+            for key in self.main_table:
+                if key not in new_dict:
+                    current = self.main_table[key]
+                    if ConditionObject.check_condition(cond, current, self.metadata):
+                        new_dict[key] = current
+
+        GeneralFunction.print_time(start, time.time())
+        return self.metadata, new_dict
+
     # Input data from file.
     # type file_name: array - file name without type which exist in the rowData directory
     # type create_metadata_flag: boolean - to put the first line in the file as the metadata of this table
@@ -53,7 +73,7 @@ class DatabaseFunction:
             file.close()
 
         GeneralFunction.print_time(start, time.time())
-
+        
     # Sort ths table by s_c in metadata.
     # type require_metadata: array - desired metadata which exist in this table
     # rtype require_metadata: array - return the input require_metadata
@@ -77,4 +97,3 @@ class DatabaseFunction:
 
         GeneralFunction.print_time(start, time.time())
         return self.metadata, new_dict
-

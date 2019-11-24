@@ -1,5 +1,6 @@
 from databaseStructure import MyHashTable
 from databaseStructure import MyBTreeTable
+from generalFunction import GeneralFunction
 
 # This table is for mapping the user input variable and actual table
 parameter_assignment_table = {}
@@ -11,28 +12,10 @@ if database_type.lower() not in ['hash', 'btree']:
     database_type = 'hash'
 
 
-# Get the action information from action.
-def get_input_action(input_string):
-    input_string = input_string.rstrip().strip().replace(" ", "")
-    # '(' and ':=' are two key symbol that must exist in the input.
-    if '(' in input_string and ':=' in input_string:
-
-        # Get the table name.
-        assign_name_index = input_string.index(":=")
-        assign_name = input_string[0:assign_name_index]
-
-        # Get the function name.
-        parameter_start_index = input_string.index("(")
-        function_name = input_string[assign_name_index + 2:parameter_start_index]
-
-        # Get the parameter for this function.
-        parameters = input_string[parameter_start_index + 1:len(input_string) - 1].split(',')
-
-        return assign_name, function_name, parameters
-    return None, None, None
-
-
 # Perform the action from the std input
+# type assign_name: str
+# type function_name: str
+# type parameters: array
 def perform_input_action(assign_name, function_name, variables):
     function_name = function_name.lower()
 
@@ -44,13 +27,12 @@ def perform_input_action(assign_name, function_name, variables):
             parameter_assignment_table[assign_name] = MyBTreeTable.MyBTreeTable()
 
     # Below actions follow the steps :
-    # Get the table from assignment table -> perform the action -> put it back to assignment table
+    # Get the table from assignment table -> perform the action
 
     # Action: inputfromfile
     if function_name == 'inputfromfile':
         temp_table = parameter_assignment_table[assign_name]
         temp_table.input_from_file(variables, True)
-        parameter_assignment_table[assign_name] = temp_table
 
     # Action: project
     if function_name == 'project':
@@ -59,8 +41,17 @@ def perform_input_action(assign_name, function_name, variables):
         # Passing parameter except the first value as first value is table_parameter
         meta_data, new_dict = temp_old_table.project(variables[1::])
         temp_new_table = parameter_assignment_table[assign_name]
-        temp_new_table.meta_data = meta_data
-        temp_new_table.main_hash_dict = new_dict
+        temp_new_table.metadata = meta_data
+        temp_new_table.main_table = new_dict
+
+    # Action: select
+    if function_name == 'select':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table[table_parameter]
+        meta_data, new_dict = temp_old_table.select(variables[1])
+        temp_new_table = parameter_assignment_table[assign_name]
+        temp_new_table.metadata = meta_data
+        temp_new_table.main_table = new_dict
 
     # Action: sort
     if function_name == 'sort':
@@ -80,6 +71,7 @@ def perform_input_action(assign_name, function_name, variables):
 
 
 # __TODO__ Below block is for testing purpose only
+
 inputString = 'R1 := inputfromfile(test)'
 assignName, actionName, actionParameters = get_input_action(inputString)
 
@@ -89,6 +81,19 @@ perform_input_action(assignName, actionName, actionParameters)
 # assignName, actionName, actionParameters = get_input_action(inputString)
 #
 # perform_input_action(assignName, actionName, actionParameters)
+
+inputString = 'R := inputfromfile(sales1)'
+assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+
+perform_input_action(assignName, actionName, actionParameters)
+
+inputString = 'R1 := select(R, (time > 49) and (time < 51) )'
+assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+
+perform_input_action(assignName, actionName, actionParameters)
+
+inputString = 'R2 := project(R1, saleid, qty, pricerange)'
+assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 
 inputString = 'T2 := sort(R1, qty)'
 assignNmae, actionName, actionParameters = get_input_action(inputString)
@@ -100,6 +105,5 @@ print(rTable.metadata)
 for key in rTable.main_hash_dict:
     print(rTable.main_hash_dict[key].value)
 
-
-
-
+rTable = parameter_assignment_table['R1'].main_table
+print(len(rTable))
