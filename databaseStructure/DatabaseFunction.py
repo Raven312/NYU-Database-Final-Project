@@ -54,7 +54,7 @@ class DatabaseFunction:
 
         GeneralFunction.print_time(start, time.time())
 
-    # Copy this table based on the input metadata.
+    # Sort ths table by s_c in metadata.
     # type require_metadata: array - desired metadata which exist in this table
     # rtype require_metadata: array - return the input require_metadata
     # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
@@ -62,18 +62,18 @@ class DatabaseFunction:
         start = time.time()
 
         # get the index of s_c in metadata
+
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
-        new_dict = {}
-        # sort the dictionary "main_table" and output a new dictionary
-        if require_index == 0:
-            sorted_table = sorted(self.main_table.items(), key=lambda kv: kv[0])
+
+        # print(list(self.main_table.values())[0].value[require_index[0]])
+        if list(self.main_table.values())[0].value[require_index[0]].isdigit():
+            sorted_table = sorted(self.main_table.items(), key=lambda x: int(x[1].value[require_index[0]]))
         else:
-            sorted_table = sorted(self.main_table.items(), key=lambda kv: kv[1][require_index])
-        #  covert the list of tuples into dictionary
-        for i in sorted_table:
-            key = i[0]
-            value = i[1]
-            new_dict[key] = value
+            sorted_table = sorted(self.main_table.items(), key=lambda x: x[1].value[require_index[0]])
+
+         # covert the list of tuples into dictionary
+
+        new_dict = GeneralFunction.convert_tuples_into_dic(sorted_table)
 
         GeneralFunction.print_time(start, time.time())
         return self.metadata, new_dict
