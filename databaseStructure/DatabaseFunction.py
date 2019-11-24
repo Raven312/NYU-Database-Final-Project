@@ -53,3 +53,25 @@ class DatabaseFunction:
             file.close()
 
         GeneralFunction.print_time(start, time.time())
+
+    # Copy this table based on the input metadata.
+    # type require_metadata: array - desired metadata which exist in this table
+    # rtype require_metadata: array - return the input require_metadata
+    # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
+    def sort(self, require_metadata):
+        start = time.time()
+
+        # get the index of s_c in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
+        new_dict = {}
+
+        # sort the dictionary "main_table" and output a new dictionary
+        sorted_table = sorted(self.main_table.items(), key=lambda kv: kv[1][require_index])
+        for i in sorted_table:
+            key = i[0]
+            value = i[1]
+            new_dict[key] = value
+
+        GeneralFunction.print_time(start, time.time())
+        return self.metadata, new_dict
+
