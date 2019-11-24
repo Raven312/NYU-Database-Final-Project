@@ -90,6 +90,17 @@ class GeneralFunction:
     def print_time(start, end):
         print(end - start)
 
+    # covert the list of tuples into dictionary
+    # type sorted_table: tuples
+    # type new_dict: dictionary
+    @staticmethod
+    def convert_tuples_into_dic(sorted_table):
+        new_dict = {}
+        for i in sorted_table:
+            key = i[0]
+            value = i[1]
+            new_dict[key] = value
+        return new_dict
 
 # Append the value to target dictionary.
 # type target_dict: dictionary

@@ -53,8 +53,35 @@ def perform_input_action(assign_name, function_name, variables):
         temp_new_table.metadata = meta_data
         temp_new_table.main_table = new_dict
 
+    # Action: sort
+    if function_name == 'sort':
+        table_parameter= variables[0]
+        temp_old_table = parameter_assignment_table[table_parameter]
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, new_dict = temp_old_table.sort(variables[1::])
+        temp_new_table = parameter_assignment_table[assign_name]
+        temp_new_table.meta_data = meta_data
+        temp_new_table.main_table = new_dict
+
+
+
+
+
+
+
 
 # __TODO__ Below block is for testing purpose only
+
+inputString = 'R1 := inputfromfile(test)'
+assignName, actionName, actionParameters = get_input_action(inputString)
+
+perform_input_action(assignName, actionName, actionParameters)
+
+# inputString = 'R2 := project(R1, saleid, qty, pricerange)'
+# assignName, actionName, actionParameters = get_input_action(inputString)
+#
+# perform_input_action(assignName, actionName, actionParameters)
+
 inputString = 'R := inputfromfile(sales1)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 
@@ -68,10 +95,15 @@ perform_input_action(assignName, actionName, actionParameters)
 inputString = 'R2 := project(R1, saleid, qty, pricerange)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 
-perform_input_action(assignName, actionName, actionParameters)
+inputString = 'T2 := sort(R1, qty)'
+assignNmae, actionName, actionParameters = get_input_action(inputString)
+
+perform_input_action(assignNmae, actionName, actionParameters)
+
+rTable = parameter_assignment_table['T2']
+print(rTable.metadata)
+for key in rTable.main_hash_dict:
+    print(rTable.main_hash_dict[key].value)
 
 rTable = parameter_assignment_table['R1'].main_table
 print(len(rTable))
-
-
-
