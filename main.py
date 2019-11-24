@@ -70,7 +70,7 @@ def perform_input_action(assign_name, function_name, variables):
         meta_data, new_dict = temp_old_table.sort(variables[1::])
         temp_new_table = parameter_assignment_table[assign_name]
         temp_new_table.meta_data = meta_data
-        temp_new_table.main_hash_dict = new_dict
+        temp_new_table.main_table = new_dict
 
 
 
