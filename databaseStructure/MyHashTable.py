@@ -6,5 +6,5 @@ class MyHashTable(DatabaseFunction):
     def __init__(self):
         super().__init__()
         # Implement Hash Table from python in-build dictionary
-        self.meta_data = []
-        self.main_hash_dict = {}
+        self.metadata = []
+        self.main_table = {}
