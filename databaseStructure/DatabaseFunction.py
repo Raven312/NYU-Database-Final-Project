@@ -64,9 +64,12 @@ class DatabaseFunction:
         # get the index of s_c in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
         new_dict = {}
-
         # sort the dictionary "main_table" and output a new dictionary
-        sorted_table = sorted(self.main_table.items(), key=lambda kv: kv[1][require_index])
+        if require_index == 0:
+            sorted_table = sorted(self.main_table.items(), key=lambda kv: kv[0])
+        else:
+            sorted_table = sorted(self.main_table.items(), key=lambda kv: kv[1][require_index])
+        #  covert the list of tuples into dictionary
         for i in sorted_table:
             key = i[0]
             value = i[1]
