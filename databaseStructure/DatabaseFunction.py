@@ -2,6 +2,7 @@ from databaseStructure import DbObject
 from generalFunction import GeneralFunction
 from ConditionObject import ConditionObject
 import time
+import numpy as np
 
 
 class DatabaseFunction:
@@ -73,13 +74,8 @@ class DatabaseFunction:
             file.close()
 
         GeneralFunction.print_time(start, time.time())
-<<<<<<< HEAD
 
     # Sort ths table by parameters in metadata.
-=======
-        
-    # Sort ths table by s_c in metadata.
->>>>>>> 06b2405b6365367ffa9825d62d573e130327a49c
     # type require_metadata: array - desired metadata which exist in this table
     # rtype require_metadata: array - return the input require_metadata
     # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
@@ -100,3 +96,35 @@ class DatabaseFunction:
 
         GeneralFunction.print_time(start, time.time())
         return self.metadata, new_dict
+
+    # moving average ths table by parameters in metadata.
+    # type variables: array - first is header and second is moving average period of time n
+    # rtype new_metadata: array - return the key and input header
+    # rtype new_dic: dictionary - return the value of key and input header
+    def mov_avg(self, variables):
+        require_header = variables[0]
+        period_of_time = int(variables[1])
+        start = time.time()
+
+        new_metadata = [self.metadata[0], require_header]
+        # get the index of parameters in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
+
+        new_dict = {}
+        # Moving average counting
+        for key in self.main_table:
+            current_index = list(self.main_table.keys()).index(key)
+            moving_avg = 0
+            count = 0
+            for j in range(0, period_of_time):
+                index = current_index - j
+                if index < 0:
+                    break
+                current_dbobj = list(self.main_table.values())[index]
+                moving_avg += int(current_dbobj.value[require_index])
+                count += 1
+
+            new_dict[key] = moving_avg/count
+
+        GeneralFunction.print_time(start, time.time())
+        return new_metadata, new_dict
