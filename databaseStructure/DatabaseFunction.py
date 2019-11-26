@@ -73,13 +73,8 @@ class DatabaseFunction:
             file.close()
 
         GeneralFunction.print_time(start, time.time())
-<<<<<<< HEAD
 
     # Sort ths table by parameters in metadata.
-=======
-        
-    # Sort ths table by s_c in metadata.
->>>>>>> 06b2405b6365367ffa9825d62d573e130327a49c
     # type require_metadata: array - desired metadata which exist in this table
     # rtype require_metadata: array - return the input require_metadata
     # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns

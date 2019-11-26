@@ -64,23 +64,7 @@ def perform_input_action(assign_name, function_name, variables):
         temp_new_table.main_table = new_dict
 
 
-
-
-
-
-
-
 # __TODO__ Below block is for testing purpose only
-
-inputString = 'R1 := inputfromfile(test)'
-assignName, actionName, actionParameters = get_input_action(inputString)
-
-perform_input_action(assignName, actionName, actionParameters)
-
-# inputString = 'R2 := project(R1, saleid, qty, pricerange)'
-# assignName, actionName, actionParameters = get_input_action(inputString)
-#
-# perform_input_action(assignName, actionName, actionParameters)
 
 inputString = 'R := inputfromfile(sales1)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
@@ -94,11 +78,6 @@ perform_input_action(assignName, actionName, actionParameters)
 
 inputString = 'R2 := project(R1, saleid, qty, pricerange)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-
-inputString = 'T2 := sort(R1, qty)'
-assignNmae, actionName, actionParameters = get_input_action(inputString)
-
-perform_input_action(assignNmae, actionName, actionParameters)
 
 rTable = parameter_assignment_table['T2']
 print(rTable.metadata)
