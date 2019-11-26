@@ -95,3 +95,21 @@ class DatabaseFunction:
 
         GeneralFunction.print_time(start, time.time())
         return self.metadata, new_dict
+
+    # Return average value of the column.
+    # type require_metadata: array - desired metadata which exist in this table
+    # rtype require_metadata: array - return the input avg_ + require_metadata
+    # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome average
+    def average(self, require_metadata):
+        start = time.time()
+
+        # get the index of parameters in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
+
+        total_sum = 0
+        for key in self.main_table:
+            total_sum += int(self.main_table[key].value[require_index[0]])
+        total_average = total_sum / len(self.main_table)
+
+        GeneralFunction.print_time(start, time.time())
+        return ['avg_' + require_metadata[0]], {None: total_average}
