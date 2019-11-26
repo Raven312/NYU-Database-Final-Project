@@ -31,11 +31,10 @@ class ParameterAssignmentTable:
     # type db_object: DbObject
     # rtype None
     def create_parameter_assignment_table(self, assign_name):
-        if self.parameter_assignment_table.get(assign_name):
-            if self.database_type == 'hash':
-                self.parameter_assignment_table[assign_name] = MyHashTable.MyHashTable()
-            else:
-                self.parameter_assignment_table[assign_name] = MyBTreeTable.MyBTreeTable()
+        if self.database_type == 'hash':
+            self.parameter_assignment_table[assign_name] = MyHashTable.MyHashTable()
+        else:
+            self.parameter_assignment_table[assign_name] = MyBTreeTable.MyBTreeTable()
 
     # Insert value into the table by assign name.
     # type assign_name: str
