@@ -96,6 +96,10 @@ class DatabaseFunction:
         GeneralFunction.print_time(start, time.time())
         return self.metadata, new_dict
 
+    # Return average value of the column.
+    # type require_metadata: array - desired metadata which exist in this table
+    # rtype require_metadata: array - return the input avg_ + require_metadata
+    # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome average
     def average(self, require_metadata):
         start = time.time()
 
