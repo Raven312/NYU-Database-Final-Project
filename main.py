@@ -1,5 +1,3 @@
-from databaseStructure import MyHashTable
-from databaseStructure import MyBTreeTable
 from generalFunction import GeneralFunction
 from ParameterAssignmentTable import ParameterAssignmentTable
 
@@ -12,6 +10,8 @@ if database_type.lower() not in ['hash', 'btree']:
     print('Invalid input, database type will be default: hash')
     database_type = 'hash'
 
+parameter_assignment_table.set_database_type(database_type)
+
 
 # Perform the action from the std input
 # type assign_name: str
@@ -21,11 +21,7 @@ def perform_input_action(assign_name, function_name, variables):
     function_name = function_name.lower()
 
     # Create table in parameter table if the table not exist
-    if not parameter_assignment_table.is_key_exist(assign_name):
-        if database_type == 'hash':
-            parameter_assignment_table.create_parameter_assignment_table(assign_name, MyHashTable.MyHashTable())
-        else:
-            parameter_assignment_table.create_parameter_assignment_table(assign_name, MyBTreeTable.MyBTreeTable())
+    parameter_assignment_table.create_parameter_assignment_table(assign_name)
 
     # Below actions follow the steps :
     # Get the table from assignment table -> perform the action
@@ -65,12 +61,6 @@ def perform_input_action(assign_name, function_name, variables):
         # Passing parameter except the first value as first value is table_parameter
         meta_data, new_dict = temp_old_table.average(variables[1::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
-
-
-
-
-
-
 
 
 # __TODO__ Below block is for testing purpose only
