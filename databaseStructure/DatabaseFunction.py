@@ -147,3 +147,44 @@ class DatabaseFunction:
 
         return [header for header in group_header] + ['sum_' + sum_header], group_dict
 
+    # Return avg of the avg_header and group by group_header.
+    # type avg_header: str - the column to count average
+    # type group_header: array - the columns to group by
+    # rtype array - return the group_header and 'avg_' + sum_header
+    # rtype group_dict: dictionary - new dictionary which have key equal to the value of the column in group_header,
+    # and value of group_header and sum of sum_header.
+    def avg_group(self, avg_header, group_header):
+        start = time.time()
+
+        avg_index = GeneralFunction.get_index_of_metadata(self.metadata, [avg_header])
+        # get the index of parameters in metadata
+        group_index = GeneralFunction.get_index_of_metadata(self.metadata, group_header)
+
+        group_dict = {}
+        count_dict = {}
+
+        for key in self.main_table:
+            new_key = []
+            for index in group_index:
+                new_key.append(self.main_table[key].value[index])
+
+            new_key_string = str(new_key)
+            if group_dict.get(new_key_string):
+                value = group_dict[new_key_string]
+                value[-1] = str(int(value[-1]) + int(self.main_table[key].value[avg_index[0]]))
+            else:
+                group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[avg_index[0]]]
+
+            if count_dict.get(new_key_string):
+                count_dict[new_key_string] += 1
+            else:
+                count_dict[new_key_string] = 1
+
+        for key in group_dict:
+            group_value = group_dict[key]
+            group_value[-1] = str(int(group_value[-1]) / count_dict[key])
+
+        GeneralFunction.print_time(start, time.time())
+
+        return [header for header in group_header] + ['avg_' + avg_header], group_dict
+

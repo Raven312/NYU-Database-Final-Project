@@ -62,12 +62,20 @@ def perform_input_action(assign_name, function_name, variables):
         meta_data, new_dict = temp_old_table.average(variables[1::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
 
-    # Action: avg
+    # Action: sumgroup
     if function_name == 'sumgroup':
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
         meta_data, new_dict = temp_old_table.sum_group(variables[1], variables[2::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+
+    # Action: avggroup
+    if function_name == 'avggroup':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, new_dict = temp_old_table.avg_group(variables[1], variables[2::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
 
 
@@ -78,7 +86,7 @@ assignName, actionName, actionParameters = GeneralFunction.get_input_action(inpu
 
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'R2 := sumgroup(R1, qty, time)'
+inputString = 'R2 := avggroup(R1, qty, pricerange)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
