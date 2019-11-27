@@ -112,4 +112,38 @@ class DatabaseFunction:
         total_average = total_sum / len(self.main_table)
 
         GeneralFunction.print_time(start, time.time())
+
         return ['avg_' + require_metadata[0]], {None: total_average}
+
+    # Return sum of the sum_header and group by group_header.
+    # type sum_header: str - the column to sum up
+    # type group_header: array - the columns to group by
+    # rtype array - return the group_header and 'sum_' + sum_header
+    # rtype group_dict: dictionary - new dictionary which have key equal to the value of the column in group_header,
+    # and value of group_header and sum of sum_header.
+    def sum_group(self, sum_header, group_header):
+        start = time.time()
+
+        sum_index = GeneralFunction.get_index_of_metadata(self.metadata, [sum_header])
+        # get the index of parameters in metadata
+        group_index = GeneralFunction.get_index_of_metadata(self.metadata, group_header)
+
+        group_dict = {}
+
+        for key in self.main_table:
+            new_key = []
+            for index in group_index:
+                new_key.append(self.main_table[key].value[index])
+
+            new_key_string = str(new_key)
+            if group_dict.get(new_key_string):
+                value = group_dict[new_key_string]
+                value[-1] = str(int(value[-1]) + int(self.main_table[key].value[sum_index[0]]))
+                group_dict[new_key_string] = value
+            else:
+                group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[sum_index[0]]]
+
+        GeneralFunction.print_time(start, time.time())
+
+        return [header for header in group_header] + ['sum_' + sum_header], group_dict
+

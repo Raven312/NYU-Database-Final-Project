@@ -62,26 +62,25 @@ def perform_input_action(assign_name, function_name, variables):
         meta_data, new_dict = temp_old_table.average(variables[1::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
 
+    # Action: avg
+    if function_name == 'sumgroup':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, new_dict = temp_old_table.sum_group(variables[1], variables[2::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+
 
 # __TODO__ Below block is for testing purpose only
 
-inputString = 'R1 := inputfromfile(sales1)'
+inputString = 'R1 := inputfromfile(test)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'R :=  avg(R1, qty)'
+inputString = 'R2 := sumgroup(R1, qty, time)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'R2 := project(R1, saleid, qty, pricerange)'
-assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-
-rTable = parameter_assignment_table['T2']
-print(rTable.metadata)
-for key in rTable.main_hash_dict:
-    print(rTable.main_hash_dict[key].value)
-
-rTable = parameter_assignment_table.get_parameter_assignment_table('R').main_table
+rTable = parameter_assignment_table.get_parameter_assignment_table('R2').main_table
 print(len(rTable))
