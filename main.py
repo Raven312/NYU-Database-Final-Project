@@ -54,6 +54,14 @@ def perform_input_action(assign_name, function_name, variables):
         meta_data, new_dict = temp_old_table.sort(variables[1::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
 
+    # Action: movavg
+    if function_name == 'movavg':
+        table_parameter= variables[0]
+        temp_old_table = parameter_assignment_table[table_parameter]
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, new_dict = temp_old_table.mov_avg(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+
     # Action: avg
     if function_name == 'avg':
         table_parameter = variables[0]
@@ -86,9 +94,13 @@ assignName, actionName, actionParameters = GeneralFunction.get_input_action(inpu
 
 perform_input_action(assignName, actionName, actionParameters)
 
+inputString = 'T3 :=  sort(R1, time, pricerange)'
+
 inputString = 'R2 := avggroup(R1, qty, pricerange)'
+
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+
 perform_input_action(assignName, actionName, actionParameters)
 
-rTable = parameter_assignment_table.get_parameter_assignment_table('R2').main_table
+rTable = parameter_assignment_table.get_parameter_assignment_table('T3').main_table
 print(len(rTable))
