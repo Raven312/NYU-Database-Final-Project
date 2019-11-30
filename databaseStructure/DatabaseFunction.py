@@ -2,6 +2,8 @@ from databaseStructure import DbObject
 from generalFunction import GeneralFunction
 from ConditionObject import ConditionObject
 import time
+import operator
+import numpy as np
 
 
 class DatabaseFunction:
@@ -90,7 +92,7 @@ class DatabaseFunction:
 
         GeneralFunction.print_time(start, time.time())
 
-    # Sort ths table by parameters in metadata.
+    # Sort this table by parameters in metadata.
     # type require_metadata: array - desired metadata which exist in this table
     # rtype require_metadata: array - return the input require_metadata
     # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
@@ -101,16 +103,62 @@ class DatabaseFunction:
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
 
         # print(list(self.main_table.values())[0].value[require_index[0]])
-        if list(self.main_table.values())[0].value[require_index[0]].isdigit():
-            sorted_table = sorted(self.main_table.items(), key=lambda x: int(x[1].value[require_index[0]]))
-        else:
-            sorted_table = sorted(self.main_table.items(), key=lambda x: x[1].value[require_index[0]])
+        # define prepare_sort function and import operator
+        # import itemgetter to take input from list variables and sort
+
+        sorted_table = sorted(self.main_table.items(), key=lambda x: self.prepare_sort(x, require_index))
 
         # covert the list of tuples into dictionary
         new_dict = GeneralFunction.convert_tuples_into_dic(sorted_table)
 
         GeneralFunction.print_time(start, time.time())
         return self.metadata, new_dict
+
+        # get the sorted items list identifying whether it is integer or string, further return items.
+    @staticmethod
+    def prepare_sort(x, require_index):
+        items = operator.itemgetter(*require_index)(x[1].value)
+        item_list = list(items)
+        for idx, value in enumerate(item_list):
+            if value.isdigit():
+                item_list[idx] = int(value)
+        items = tuple(item_list)
+        return items
+
+
+    # Return the value of moving average in metadata.
+    # type variables: array - first is header and second is moving average period of time n
+    # rtype new_metadata: array - return the key and input header
+    # rtype new_dic: dictionary - return the value of key and input header
+    def mov_avg(self, variables):
+        require_header = variables[0]
+        period_of_time = int(variables[1])
+        start = time.time()
+
+        new_metadata = [self.metadata[0], require_header]
+        # get the index of parameters in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
+
+        new_dict = {}
+        # Moving average counting
+        # current_index as list(self.main_table.keys()).index(key)
+        for key in self.main_table:
+            current_index = list(self.main_table.keys()).index(key)
+            moving_avg = 0
+            count = 0
+        # counting period_of_time and get new_dict[key]
+            for j in range(0, period_of_time):
+                index = current_index - j
+                if index < 0:
+                    break
+                current_dbobj = list(self.main_table.values())[index]
+                moving_avg += int(current_dbobj.value[require_index])
+                count += 1
+
+            new_dict[key] = moving_avg/count
+
+        GeneralFunction.print_time(start, time.time())
+        return new_metadata, new_dict
 
     # Return average value of the column.
     # type require_metadata: array - desired metadata which exist in this table
@@ -182,7 +230,7 @@ class DatabaseFunction:
             group_value[-1] = str(int(group_value[-1]) / count_dict[key])
 
         GeneralFunction.print_time(start, time.time())
-
+        
         return [header for header in group_header] + ['avg_' + avg_header], group_dict
 
     # Create index by input metadata.
@@ -235,4 +283,3 @@ class DatabaseFunction:
             group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[target_index[0]]]
 
         return new_key_string, group_dict
-
