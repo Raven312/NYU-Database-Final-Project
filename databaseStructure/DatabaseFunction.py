@@ -9,6 +9,7 @@ class DatabaseFunction:
         # Implement Hash Table from python in-build dictionary.
         self.metadata = []
         self.main_table = {}
+        self.index = {}
 
     # Assign the meta_data to the table.
     # type metadata: array
@@ -41,6 +42,19 @@ class DatabaseFunction:
 
         new_dict = {}
         conditions = GeneralFunction.transform_condition_to_object(parameter)
+        # If index exist, using index to select the condition in equal
+        if self.exist_index(parameter):
+            item_position = []
+            for cond in conditions:
+                for key in cond.equal_dict:
+                    if key in self.index:
+                        for value in cond.equal_dict[key]:
+                            if self.index[key].get(value):
+                                item_position.extend(self.index[key][value])
+
+            for position in item_position:
+                new_dict[position] = self.main_table[position]
+
         for cond in conditions:
             for key in self.main_table:
                 if key not in new_dict:
@@ -66,10 +80,12 @@ class DatabaseFunction:
                 self.create_table(metadata_array)
                 line = file.readline().rstrip().strip().replace(" ", "")
             # Input data into dictionary
+            iterator = 0
             while line:
                 line_item = line.split('|')
-                self.main_table[line_item[0]] = DbObject.DbObject([line_item[i] for i in range(0, len(line_item))])
+                self.main_table[str(iterator)] = DbObject.DbObject([line_item[i] for i in range(0, len(line_item))])
                 line = file.readline().rstrip().strip().replace(" ", "")
+                iterator += 1
             file.close()
 
         GeneralFunction.print_time(start, time.time())
@@ -131,17 +147,7 @@ class DatabaseFunction:
         group_dict = {}
 
         for key in self.main_table:
-            new_key = []
-            for index in group_index:
-                new_key.append(self.main_table[key].value[index])
-
-            new_key_string = str(new_key)
-            if group_dict.get(new_key_string):
-                value = group_dict[new_key_string]
-                value[-1] = str(int(value[-1]) + int(self.main_table[key].value[sum_index[0]]))
-                group_dict[new_key_string] = value
-            else:
-                group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[sum_index[0]]]
+            new_key_string, group_dict = self.update_group_dict(group_dict, key, group_index, sum_index)
 
         GeneralFunction.print_time(start, time.time())
 
@@ -164,16 +170,7 @@ class DatabaseFunction:
         count_dict = {}
 
         for key in self.main_table:
-            new_key = []
-            for index in group_index:
-                new_key.append(self.main_table[key].value[index])
-
-            new_key_string = str(new_key)
-            if group_dict.get(new_key_string):
-                value = group_dict[new_key_string]
-                value[-1] = str(int(value[-1]) + int(self.main_table[key].value[avg_index[0]]))
-            else:
-                group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[avg_index[0]]]
+            new_key_string, group_dict = self.update_group_dict(group_dict, key, group_index, avg_index)
 
             if count_dict.get(new_key_string):
                 count_dict[new_key_string] += 1
@@ -187,4 +184,55 @@ class DatabaseFunction:
         GeneralFunction.print_time(start, time.time())
 
         return [header for header in group_header] + ['avg_' + avg_header], group_dict
+
+    # Create index by input metadata.
+    # type metadata: str - the column to create index
+    # rtype None
+    def create_index(self, metadata):
+        start = time.time()
+
+        # get the index of parameters in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, [metadata])
+        new_dic = {}
+
+        for key in self.main_table:
+            new_key = self.main_table[key].value[require_index[0]]
+            if new_dic.get(new_key):
+                new_dic[new_key].append(key)
+            else:
+                new_dic[new_key] = [key]
+
+        self.index[metadata] = new_dic
+
+        GeneralFunction.print_time(start, time.time())
+
+    # Check if index exist.
+    # type parameters: str
+    # rtype Boolean
+    def exist_index(self, parameters):
+        for key in self.index:
+            if key in parameters:
+                return True
+
+        return False
+
+    # Update the dictionary in group function.
+    # type group_dict: dict
+    # type key: str - current key in main table
+    # type group_index: array - group index arrays
+    # type target_index: array - target index arrays
+    # rtype str, dictionary
+    def update_group_dict(self, group_dict, key, group_index, target_index):
+        new_key = []
+        for index in group_index:
+            new_key.append(self.main_table[key].value[index])
+
+        new_key_string = str(new_key)
+        if group_dict.get(new_key_string):
+            value = group_dict[new_key_string]
+            value[-1] = str(int(value[-1]) + int(self.main_table[key].value[target_index[0]]))
+        else:
+            group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[target_index[0]]]
+
+        return new_key_string, group_dict
 
