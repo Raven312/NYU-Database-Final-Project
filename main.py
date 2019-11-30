@@ -21,7 +21,8 @@ def perform_input_action(assign_name, function_name, variables):
     function_name = function_name.lower()
 
     # Create table in parameter table if the table not exist
-    parameter_assignment_table.create_parameter_assignment_table(assign_name)
+    if function_name != 'hash' or function_name != 'hash':
+        parameter_assignment_table.create_parameter_assignment_table(assign_name)
 
     # Below actions follow the steps :
     # Get the table from assignment table -> perform the action
@@ -86,21 +87,30 @@ def perform_input_action(assign_name, function_name, variables):
         meta_data, new_dict = temp_old_table.avg_group(variables[1], variables[2::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
 
+    # Actions: create index
+    if function_name == 'btree':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, new_dict = temp_old_table.avg_group(variables[1], variables[2::])
+        parameter_assignment_table.insert_parameter_assignment_table(table_parameter, meta_data, new_dict)
+
+    if function_name == 'hash':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        temp_old_table.create_index(variables[1])
+
 
 # __TODO__ Below block is for testing purpose only
 
-inputString = 'R1 := inputfromfile(test)'
+inputString = 'R := inputfromfile(sales1)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'T3 :=  sort(R1, time, pricerange)'
-
-inputString = 'R2 := avggroup(R1, qty, pricerange)'
-
+inputString = 'R4 := avggroup(R, time, qty)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-
 perform_input_action(assignName, actionName, actionParameters)
 
-rTable = parameter_assignment_table.get_parameter_assignment_table('T3').main_table
+rTable = parameter_assignment_table.get_parameter_assignment_table('q3').main_table
 print(len(rTable))

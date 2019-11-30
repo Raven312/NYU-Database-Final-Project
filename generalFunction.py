@@ -10,22 +10,25 @@ class GeneralFunction:
     # rtype parameters: array
     @staticmethod
     def get_input_action(input_string):
-        input_string = input_string.rstrip().strip().replace(" ", "")
+        input_string = input_string.rstrip().strip().replace(" ", "").lower()
+        assign_name = ''
+        function_name = ''
+        parameter_start_index = input_string.index("(")
+
         # '(' and ':=' are two key symbol that must exist in the input.
         if '(' in input_string and ':=' in input_string:
             # Get the table name.
             assign_name_index = input_string.index(":=")
             assign_name = input_string[0:assign_name_index]
-
             # Get the function name.
-            parameter_start_index = input_string.index("(")
             function_name = input_string[assign_name_index + 2:parameter_start_index]
+        elif 'btree' in input_string or 'hash' in input_string:
+            # Get the function name.
+            function_name = input_string[0:parameter_start_index]
 
-            # Get the parameter for this function.
-            parameters = input_string[parameter_start_index + 1:len(input_string) - 1].split(',')
-
-            return assign_name, function_name, parameters
-        return None, None, None
+        # Get the parameter for this function.
+        parameters = input_string[parameter_start_index + 1:len(input_string) - 1].split(',')
+        return assign_name, function_name, parameters
 
     # Transform condition string to array ConditionObject.
     # 'And' condition will be put into a single object and 'Or' condition will be put into separate object

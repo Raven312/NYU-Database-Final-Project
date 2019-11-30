@@ -9,3 +9,4 @@ class MyBTreeTable(DatabaseFunction):
         # Implement Hash Table from python in-build dictionary.
         self.metadata = []
         self.main_table = OOBTree()
+        self.index = OOBTree()
