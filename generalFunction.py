@@ -102,6 +102,7 @@ class GeneralFunction:
             new_dict[key] = value
         return new_dict
 
+
 # Append the value to target dictionary.
 # type target_dict: dictionary
 # type operator: str
