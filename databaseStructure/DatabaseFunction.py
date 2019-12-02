@@ -140,7 +140,7 @@ class DatabaseFunction:
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
 
         new_dict = {}
-        # Moving average counting
+        # moving average counting
         # current_index as list(self.main_table.keys()).index(key)
         for key in self.main_table:
             current_index = list(self.main_table.keys()).index(key)
@@ -156,6 +156,38 @@ class DatabaseFunction:
                 count += 1
 
             new_dict[key] = moving_avg/count
+
+        GeneralFunction.print_time(start, time.time())
+        return new_metadata, new_dict
+
+    # Return the value of moving sum in metadata.
+    # type variables: array - first is header and second is moving sum window_size
+    # rtype new_metadata: array - return the key and input header
+    # rtype new_dic: dictionary - return the value of key and input header
+    def mov_sum(self, variables):
+        require_header = variables[0]
+        window_size = int(variables[1])
+        start = time.time()
+
+        new_metadata = [self.metadata[0], require_header]
+        # get the index of parameters in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
+
+        new_dict = {}
+        # moving sum counting
+        # current_index as list(self.main_table.keys()).index(key)
+        for key in self.main_table:
+                current_index = list(self.main_table.keys()).index(key)
+                moving_sum = 0
+        # counting window_size and get new_dict[key]
+        for i in range(0, window_size):
+                index = current_index - i
+                if index < 0:
+                    break
+                current_dbobj = list(self.main_table.values())[index]
+                moving_sum += int(current_dbobj.value[require_index])
+
+                new_dict[key] = moving_sum
 
         GeneralFunction.print_time(start, time.time())
         return new_metadata, new_dict
@@ -283,3 +315,26 @@ class DatabaseFunction:
             group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[target_index[0]]]
 
         return new_key_string, group_dict
+
+
+    # concatenate the two tables based on the schema.
+    # type con_table2: tuple - the table that concatenate with self.main_table
+    # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
+    def concat(self, con_table2):
+        start = time.time()
+        new_dict = {}
+        if self.metadata == con_table2.metedata:
+            iterator = 0
+            for key in self.main_table:
+                new_dict[iterator] = self.main_table[key]
+                iterator += 1
+
+            for key in con_table2:
+                new_dict[iterator] = con_table2[key]
+                iterator += 1
+
+        new_metadata = [item for item in self.metadata]
+        new_metadata.extend(con_table2.metadata)
+        GeneralFunction.print_time(start, time.time())
+
+        return new_metadata, new_dict
