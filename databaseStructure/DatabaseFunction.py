@@ -331,8 +331,8 @@ class DatabaseFunction:
                                 new_value.extend(source_main.value)
                                 new_dict[new_key] = DbObject.DbObject(new_value)
 
-        new_metadata = [item for item in self.metadata]
-        new_metadata.extend(source_table.metadata)
+        new_metadata = [current_name + '_' + item for item in self.metadata]
+        new_metadata.extend([source_name + '_' + item for item in source_table.metadata])
 
         return new_metadata, new_dict
 
