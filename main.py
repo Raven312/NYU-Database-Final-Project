@@ -126,13 +126,13 @@ inputString = 'S := inputfromfile(sales2)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'R := hash(S, C)'
+inputString = 'Q := select(R,  qty <= 0)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'R4 :=  join(R, S, R.customerid = S.C)'
-assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-perform_input_action(assignName, actionName, actionParameters)
+# inputString = 'R4 :=  join(R, S, R.customerid = S.C)'
+# assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+# perform_input_action(assignName, actionName, actionParameters)
 
-rTable = parameter_assignment_table.get_parameter_assignment_table('r4').main_table
+rTable = parameter_assignment_table.get_parameter_assignment_table('q').main_table
 print(len(rTable))
