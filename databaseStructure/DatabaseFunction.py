@@ -153,14 +153,15 @@ class DatabaseFunction:
         require_header = variables[0]
         period_of_time = int(variables[1])
 
-        new_metadata = self.metadata.extend([require_header])
+        new_metadata = [item for item in self.metadata]
+        new_metadata.append('mov_avg')
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
         new_data_type = [item for item in self.data_type]
         new_data_type.append(self.data_type[require_index])
 
         new_dict = {}
-        # Moving average counting
+        # moving average counting
         # current_index as list(self.main_table.keys()).index(key)
         for key in self.main_table:
             current_index = list(self.main_table.keys()).index(key)
@@ -178,6 +179,41 @@ class DatabaseFunction:
             mov_avg_value = moving_avg/count
             new_value = [item for item in self.main_table[key].value]
             new_value.append(mov_avg_value)
+            new_dict[key] = DbObject.DbObject(new_value)
+
+        return new_metadata, new_data_type, new_dict
+
+    # Return the value of moving sum in metadata.
+    # type variables: array - first is header and second is moving sum window_size
+    # rtype new_metadata: array - return the key and input header
+    # rtype new_dic: dictionary - return the value of key and input header
+    def mov_sum(self, variables):
+        require_header = variables[0]
+        window_size = int(variables[1])
+
+        new_metadata = [item for item in self.metadata]
+        new_metadata.append('mov_sum')
+        # get the index of parameters in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
+        new_data_type = [item for item in self.data_type]
+        new_data_type.append(self.data_type[require_index])
+
+        new_dict = {}
+        # moving average counting
+        # current_index as list(self.main_table.keys()).index(key)
+        for key in self.main_table:
+            current_index = list(self.main_table.keys()).index(key)
+            moving_sum = 0
+            # counting period_of_time and get new_dict[key]
+            for j in range(0, window_size):
+                index = current_index - j
+                if index < 0:
+                    break
+                current_dbobj = list(self.main_table.values())[index]
+                moving_sum += current_dbobj.value[require_index]
+
+            new_value = [item for item in self.main_table[key].value]
+            new_value.append(moving_sum)
             new_dict[key] = DbObject.DbObject(new_value)
 
         return new_metadata, new_data_type, new_dict
@@ -216,7 +252,7 @@ class DatabaseFunction:
         group_dict = {}
 
         for key in self.main_table:
-            new_key_string, group_dict = self.update_group_dict(group_dict, key, group_index, sum_index)
+            new_key_string, group_dict = self.update_sum_group_dict(group_dict, key, group_index, sum_index)
 
         return [header for header in group_header] + ['sum_' + sum_header], new_data_type, group_dict
 
@@ -238,7 +274,7 @@ class DatabaseFunction:
         count_dict = {}
 
         for key in self.main_table:
-            new_key_string, group_dict = self.update_group_dict(group_dict, key, group_index, avg_index)
+            new_key_string, group_dict = self.update_sum_group_dict(group_dict, key, group_index, avg_index)
 
             if count_dict.get(new_key_string):
                 count_dict[new_key_string] += 1
@@ -285,7 +321,7 @@ class DatabaseFunction:
     # type group_index: array - group index arrays
     # type target_index: array - target index arrays
     # rtype str, dictionary
-    def update_group_dict(self, group_dict, key, group_index, target_index):
+    def update_sum_group_dict(self, group_dict, key, group_index, target_index):
         new_key = []
         for index in group_index:
             new_key.append(self.main_table[key].value[index])
@@ -298,6 +334,45 @@ class DatabaseFunction:
             group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[target_index[0]]]
 
         return new_key_string, group_dict
+
+    # Update the dictionary in group function.
+    # type group_dict: dict
+    # type key: str - current key in main table
+    # type group_index: array - group index arrays
+    # type target_index: array - target index arrays
+    # rtype str, dictionary
+    def update_count_group_dict(self, group_dict, key, group_index, target_index):
+        new_key = []
+        count = 0
+
+        for index in group_index:
+            new_key.append(self.main_table[key].value[index])
+
+        new_key_string = str(new_key)
+        if group_dict.get(new_key_string):
+            value = group_dict[new_key_string]
+            value[-1] = str(int(value[-1]) + 1)
+        else:
+            group_dict[new_key_string] = [k for k in new_key] + ['1']
+
+        return new_key_string, group_dict
+
+    # concatenate the two tables based on the schema.
+    # type con_table2: tuple - the table that concatenate with self.main_table
+    # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
+    def concat(self, con_table2):
+        new_dict = {}
+        if self.metadata == con_table2.metedata:
+            iterator = 0
+            for key in self.main_table:
+                new_dict[iterator] = self.main_table[key]
+                iterator += 1
+
+            for key in con_table2:
+                new_dict[iterator] = con_table2[key]
+                iterator += 1
+
+        return self.metadata, self.data_type, new_dict
 
     # Join function.
     # type current_name: str - current table name to join
@@ -388,3 +463,53 @@ class DatabaseFunction:
                 new_value = main_table[position].value
                 new_value.extend(source_table[source_key].value)
                 new_dict[position + '_' + source_key] = DbObject.DbObject(new_value)
+
+    # Return sum value of the column.
+    # type require_metadata: array - desired metadata which exist in this table
+    # rtype require_metadata: array - return the input sum_ + require_metadata
+    # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome average
+    def sum(self, require_metadata):
+
+        # get the index of parameters in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
+
+        total_sum = 0
+        for key in self.main_table:
+            total_sum += int(self.main_table[key].value[require_index[0]])
+
+        print(total_sum)
+
+        return ['sum_' + require_metadata[0]], [self.data_type[require_index[0]]], {None: total_sum}
+
+    # Return sum value of the column.
+    # type require_metadata: array - desired metadata which exist in this table
+    # rtype require_metadata: array - return the input sum_ + require_metadata
+    # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome average
+    def count(self, require_metadata):
+        return ['count_' + require_metadata[0]], ['float'], {None: len(self.main_table)}
+
+    # Return count of the count_header and group by count_header.
+    # type count_header: str - the column to count as count
+    # type group_header: array - the columns to group by
+    # rtype array - return the group_header and 'count_' + count_header
+    # rtype group_dict: dictionary - new dictionary which have key equal to the value of the column in group_header,
+    # and value of group_header and sum of count_header.
+    def count_group(self, count_header, group_header):
+        count_index = GeneralFunction.get_index_of_metadata(self.metadata, [count_header])
+        # get the index of parameters in metadata
+        group_index = GeneralFunction.get_index_of_metadata(self.metadata, group_header)
+
+        new_data_type = [self.data_type[i] for i in group_index] + [self.data_type[i] for i in count_index]
+
+        group_dict = {}
+        count_dict = {}
+
+        for key in self.main_table:
+            new_key_string, group_dict = self.update_count_group_dict(group_dict, key, group_index, count_index)
+
+            if count_dict.get(new_key_string):
+                count_dict[new_key_string] += 1
+            else:
+                count_dict[new_key_string] = 1
+
+        return [header for header in group_header] + ['count_' + count_header], new_data_type, group_dict

@@ -75,6 +75,14 @@ def perform_input_action(assign_name, function_name, variables, input_string):
         meta_data, data_type, new_dict = temp_old_table.average(variables[1::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
+    # Action: movsum
+    if function_name == 'movsum':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, data_type, new_dict = temp_old_table.mov_sum(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
+
     # Action: sumgroup
     if function_name == 'sumgroup':
         table_parameter = variables[0]
@@ -101,10 +109,43 @@ def perform_input_action(assign_name, function_name, variables, input_string):
     # Action: join
     if function_name == 'join':
         table_parameter1 = variables[0]
-        temp_old_table1 = parameter_assignment_table.get_parameter_assignment_table(table_parameter1)
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter1)
         table_parameter2 = variables[1]
         temp_old_table2 = parameter_assignment_table.get_parameter_assignment_table(table_parameter2)
-        meta_data, data_type, new_dict = temp_old_table1.join(table_parameter1, table_parameter2, temp_old_table2, variables[2])
+        meta_data, data_type, new_dict = temp_old_table.join(table_parameter1, table_parameter2, temp_old_table2, variables[2])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
+
+    # Action: concat
+    if function_name == 'concat':
+        table_parameter1 = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter1)
+        table_parameter2 = variables[1]
+        temp_old_table2 = parameter_assignment_table.get_parameter_assignment_table(table_parameter2)
+        meta_data, data_type, new_dict = temp_old_table.concat(table_parameter2, temp_old_table2, variables[2])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
+
+    # Action: sum
+    if function_name == 'sum':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, data_type, new_dict = temp_old_table.sum(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
+
+    # Action: count
+    if function_name == 'count':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, data_type, new_dict = temp_old_table.count(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
+
+    # Action: countgroup
+    if function_name == 'countgroup':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, data_type, new_dict = temp_old_table.count_group(variables[1], variables[2::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     if function_name == 'outputtofile':
@@ -123,7 +164,7 @@ def perform_input_action(assign_name, function_name, variables, input_string):
                 value_string = ''
                 current_obj = temp_old_table.main_table[key]
                 for value in current_obj.value:
-                    value_string = value_string + value + '|'
+                    value_string = value_string + str(value) + '|'
                 value_string = value_string[0:len(value_string) - 1]
                 file.writelines(value_string + '\n')
 
@@ -151,3 +192,6 @@ def read_test(file_name):
 test_file_name = input("Please copy paste the test file to the home directory of this program and input the file name:")
 
 read_test(test_file_name)
+
+r = parameter_assignment_table.get_parameter_assignment_table('t4')
+print(r)
