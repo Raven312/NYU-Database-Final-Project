@@ -60,3 +60,19 @@ class GeneralFunction:
             value = i[1]
             new_dict[key] = value
         return new_dict
+
+    # covert the list of tuples into dictionary
+    # type sorted_table: tuples
+    # type new_dict: dictionary
+
+    @staticmethod
+    def check_is_float(value):
+        if value.isnumeric():
+            return True
+        else:
+            try:
+                float(value)
+                return True
+            except ValueError:
+                return False
+

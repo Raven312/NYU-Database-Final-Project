@@ -41,65 +41,58 @@ def perform_input_action(assign_name, function_name, variables):
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
-        meta_data, new_dict = temp_old_table.project(variables[1::])
-        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+        meta_data, data_type, new_dict = temp_old_table.project(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     # Action: select
     if function_name == 'select':
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
-        meta_data, new_dict = temp_old_table.select(variables[1])
-        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+        meta_data, data_type, new_dict = temp_old_table.select(variables[1])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     # Action: sort
     if function_name == 'sort':
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
-        meta_data, new_dict = temp_old_table.sort(variables[1::])
-        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+        meta_data, data_type, new_dict = temp_old_table.sort(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     # Action: movavg
     if function_name == 'movavg':
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
-        meta_data, new_dict = temp_old_table.mov_avg(variables[1::])
-        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+        meta_data, data_type, new_dict = temp_old_table.mov_avg(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     # Action: avg
     if function_name == 'avg':
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
-        meta_data, new_dict = temp_old_table.average(variables[1::])
-        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+        meta_data, data_type, new_dict = temp_old_table.average(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     # Action: sumgroup
     if function_name == 'sumgroup':
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
-        meta_data, new_dict = temp_old_table.sum_group(variables[1], variables[2::])
-        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+        meta_data, data_type, new_dict = temp_old_table.sum_group(variables[1], variables[2::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     # Action: avggroup
     if function_name == 'avggroup':
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
-        meta_data, new_dict = temp_old_table.avg_group(variables[1], variables[2::])
-        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+        meta_data, data_type, new_dict = temp_old_table.avg_group(variables[1], variables[2::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     # Actions: create index
-    if function_name == 'btree':
-        table_parameter = variables[0]
-        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
-        # Passing parameter except the first value as first value is table_parameter
-        meta_data, new_dict = temp_old_table.avg_group(variables[1], variables[2::])
-        parameter_assignment_table.insert_parameter_assignment_table(table_parameter, meta_data, new_dict)
-
-    if function_name == 'hash':
+    if function_name == 'hash' or function_name == 'btree':
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
@@ -111,8 +104,8 @@ def perform_input_action(assign_name, function_name, variables):
         temp_old_table1 = parameter_assignment_table.get_parameter_assignment_table(table_parameter1)
         table_parameter2 = variables[1]
         temp_old_table2 = parameter_assignment_table.get_parameter_assignment_table(table_parameter2)
-        meta_data, new_dict = temp_old_table1.join(table_parameter1, table_parameter2, temp_old_table2, variables[2])
-        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+        meta_data, data_type, new_dict = temp_old_table1.join(table_parameter1, table_parameter2, temp_old_table2, variables[2])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     if function_name == 'outputtofile':
         table_parameter = variables[0]
@@ -148,7 +141,7 @@ inputString = 'S := inputfromfile(test2)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'R1 := select(R, (time > 50) or (qty < 30))'
+inputString = 'R1:= movavg(R,qty, 3)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 

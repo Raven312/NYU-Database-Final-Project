@@ -174,11 +174,16 @@ def apply_join_condition(condition_dict, op, current_name, current_main, current
 # type op: str
 # type item: str - user input condition
 def append_to_dict(target_dict, op, item):
-    values = item.split(op)
-    if target_dict.get(values[0]):
-        target_dict[values[0]] = target_dict[values].append(values[0])
+    item_split = item.split(op)
+    if GeneralFunction.check_is_float(item_split[1]):
+        value = float(item_split[1])
     else:
-        target_dict[values[0]] = [values[1]]
+        value = item_split[1]
+
+    if target_dict.get(item_split[0]):
+        target_dict[item_split[0]] = target_dict[item_split].append(value)
+    else:
+        target_dict[item_split[0]] = [value]
 
 
 def check_arithop(cond):
