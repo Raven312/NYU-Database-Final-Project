@@ -41,8 +41,9 @@ class ParameterAssignmentTable:
     # type metadata: array
     # type main_table: dictionary
     # rtype None
-    def insert_parameter_assignment_table(self, assign_name, metadata, main_table):
+    def insert_parameter_assignment_table(self, assign_name, metadata, data_type, main_table):
         target_table = self.parameter_assignment_table[assign_name]
         target_table.assign_metadata(metadata)
+        target_table.assign_data_type(data_type)
         target_table.assign_main_table(main_table)
         target_table.assign_name(assign_name)

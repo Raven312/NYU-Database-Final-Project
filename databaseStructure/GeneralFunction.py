@@ -19,7 +19,7 @@ class GeneralFunction:
             assign_name = input_string[0:assign_name_index]
             # Get the function name.
             function_name = input_string[assign_name_index + 2:parameter_start_index]
-        elif 'btree' in input_string or 'hash' in input_string:
+        elif 'btree' in input_string or 'hash' in input_string or 'outputtofile' in input_string:
             # Get the function name.
             function_name = input_string[0:parameter_start_index]
 
@@ -60,3 +60,19 @@ class GeneralFunction:
             value = i[1]
             new_dict[key] = value
         return new_dict
+
+    # covert the list of tuples into dictionary
+    # type sorted_table: tuples
+    # type new_dict: dictionary
+
+    @staticmethod
+    def check_is_float(value):
+        if value.isnumeric():
+            return True
+        else:
+            try:
+                float(value)
+                return True
+            except ValueError:
+                return False
+
