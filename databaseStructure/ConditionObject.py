@@ -36,6 +36,7 @@ class ConditionObject:
         for variable in variables_or:
             variables_and = variable.split('and')
             conditions.append(variables_and)
+
         for cond in conditions:
             equal_dict = {}
             less_dict = {}
@@ -44,6 +45,7 @@ class ConditionObject:
             greater_equal_dict = {}
             less_equal_dict = {}
             for item in cond:
+                item = check_arithop(item)
                 if '=' in item and '>' not in item and '<' not in item and '!' not in item:
                     append_to_dict(equal_dict, '=', item)
                 elif '>=' in item:
@@ -76,7 +78,7 @@ class ConditionObject:
             return False
         if not apply_condition(cond.greater_dict, '<=', metadata, db_object):
             return False
-        if not apply_condition(cond.not_equal_dict, '==', metadata, db_object):
+        if not apply_condition(cond.not_equal_dict, '=', metadata, db_object):
             return False
         if not apply_condition(cond.greater_equal_dict, '<', metadata, db_object):
             return False
@@ -95,7 +97,7 @@ class ConditionObject:
     # type source_metadata: array
     # rtype boolean
     @staticmethod
-    def check_join_condition(cond, current_name, current_main, current_metadata, source_name,
+    def check_join_condition(cond, current_name, current_main, current_metadata,
                              source_main, source_metadata):
 
         if cond.equal_dict and not apply_join_condition(cond.equal_dict, '!=', current_name, current_main, current_metadata, source_main, source_metadata):
@@ -104,7 +106,7 @@ class ConditionObject:
             return False
         if cond.greater_dict and not apply_join_condition(cond.greater_dict, '<=', current_name, current_main, current_metadata, source_main, source_metadata):
             return False
-        if cond.not_equal_dict and not apply_join_condition(cond.not_equal_dict, '==', current_name, current_main, current_metadata, source_main, source_metadata):
+        if cond.not_equal_dict and not apply_join_condition(cond.not_equal_dict, '=', current_name, current_main, current_metadata, source_main, source_metadata):
             return False
         if cond.greater_equal_dict and not apply_join_condition(cond.greater_equal_dict, '<', current_name, current_main, current_metadata, source_main, source_metadata):
             return False
@@ -114,7 +116,7 @@ class ConditionObject:
         return True
 
 
-ops = {'==': operator.eq, '>=': operator.ge, '<=': operator.le, '!=': operator.ne, '>': operator.gt, '<': operator.lt}
+ops = {'>=': operator.ge, '<=': operator.le, '!=': operator.ne, '>': operator.gt, '<': operator.lt, '=': operator.eq}
 
 
 # Check if the db object fulfill the single condition dictionary.
@@ -158,8 +160,8 @@ def apply_join_condition(condition_dict, op, current_name, current_main, current
                 table1_require_index = GeneralFunction.get_index_of_metadata(current_metadata, [table1_column])
                 table2_require_index = GeneralFunction.get_index_of_metadata(source_metadata, [table2_column])
             else:
-                table1_require_index = GeneralFunction.get_index_of_metadata(source_metadata, [table2_column])
-                table2_require_index = GeneralFunction.get_index_of_metadata(current_metadata, [table1_column])
+                table1_require_index = GeneralFunction.get_index_of_metadata(source_metadata, [table1_column])
+                table2_require_index = GeneralFunction.get_index_of_metadata(current_metadata, [table2_column])
 
             if op_func(current_main.value[table1_require_index[0]], source_main.value[table2_require_index[0]]):
                 return False
@@ -172,8 +174,65 @@ def apply_join_condition(condition_dict, op, current_name, current_main, current
 # type op: str
 # type item: str - user input condition
 def append_to_dict(target_dict, op, item):
-    values = item.split(op)
-    if target_dict.get(values[0]):
-        target_dict[values[0]] = target_dict[values].append(values[0])
+    item_split = item.split(op)
+    if GeneralFunction.check_is_float(item_split[1]):
+        value = float(item_split[1])
     else:
-        target_dict[values[0]] = [values[1]]
+        value = item_split[1]
+
+    if target_dict.get(item_split[0]):
+        target_dict[item_split[0]] = target_dict[item_split].append(value)
+    else:
+        target_dict[item_split[0]] = [value]
+
+
+def check_arithop(cond):
+    arithop = ['+', '-', '*', '/']
+    arithop_contrast = {'+': operator.sub, '-': operator.add, '*': operator.truediv, '/': operator.mul}
+    relop_contrast = {'>': '<', '<': '>', '>=': '<=', '<=': '>=', '=': '=', '!=': '!='}
+    arithop_index = -1
+    relop_index, relop_length = get_relop_index(cond)
+
+    for item in arithop:
+        if cond.find(item) != -1:
+            arithop_index = cond.index(item)
+            break
+
+    if not arithop_index == -1:
+        arithop_symbol = cond[arithop_index]
+        # + - * / at the right
+        if arithop_index > relop_index:
+            constant = int(cond[0: relop_index])
+            arithop_constant = int(cond[arithop_index + 1::])
+            contrast_fun = arithop_contrast[arithop_symbol]
+            constant = contrast_fun(constant, arithop_constant)
+            attribute = cond[relop_index + relop_length: arithop_index]
+            relop_symbol = relop_contrast[cond[relop_index:relop_index+relop_length]]
+
+        # + - * / at the left
+        else:
+            constant = int(cond[relop_index + relop_length::])
+            arithop_constant = int(cond[arithop_index + 1:relop_index])
+            contrast_fun = arithop_contrast[arithop_symbol]
+            constant = contrast_fun(constant, arithop_constant)
+            attribute = cond[0:arithop_index]
+            relop_symbol = cond[relop_index:relop_index+relop_length]
+
+        return attribute + relop_symbol + str(constant)
+
+    # If attribute is at the right side of inequality
+    if not cond[relop_index + relop_length::].isnumeric() and cond[0:relop_index].isnumeric():
+        attribute = cond[relop_index + relop_length::]
+        constant = cond[0:relop_index]
+        relop_symbol = cond[relop_index:relop_index + relop_length]
+
+        return attribute + relop_contrast[relop_symbol] + constant
+
+    return cond
+
+
+def get_relop_index(cond):
+    for item in ops:
+        if cond.find(item) != -1:
+            return cond.index(item), len(item)
+    return -1, 0

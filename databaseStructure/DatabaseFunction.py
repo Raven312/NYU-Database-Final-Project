@@ -8,6 +8,7 @@ class DatabaseFunction:
     def __init__(self):
         # Implement Hash Table from python in-build dictionary.
         self.name = ''
+        self.data_type = []
         self.metadata = []
         self.main_table = {}
         self.index = {}
@@ -22,6 +23,9 @@ class DatabaseFunction:
     def assign_metadata(self, metadata):
         self.metadata = metadata
 
+    def assign_data_type(self, data_type):
+        self.data_type = data_type
+
     # Assign the main_table to the table.
     # type main_table: dict
     def assign_main_table(self, main_table):
@@ -34,13 +38,20 @@ class DatabaseFunction:
     def project(self, require_metadata):
 
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
+
+        # Project data type
+        data_type = []
+        for index, value in enumerate(self.data_type):
+            if index in require_index:
+                data_type.append(value)
+
         new_dict = {}
 
         for key in self.main_table:
             current_value = self.main_table[key].value
             new_dict[key] = DbObject.DbObject([current_value[i] for i in require_index])
 
-        return require_metadata, new_dict
+        return require_metadata, data_type, new_dict
 
     # Select this table based on the condition.
     # type parameter: str - conditions
@@ -70,7 +81,7 @@ class DatabaseFunction:
                     if ConditionObject.check_condition(cond, current, self.metadata):
                         new_dict[key] = current
 
-        return self.metadata, new_dict
+        return self.metadata, self.data_type, new_dict
 
     # Input data from file.
     # type file_name: array - file name without type which exist in the rowData directory
@@ -85,11 +96,31 @@ class DatabaseFunction:
                 metadata_array = line.lower().split('|')
                 self.assign_metadata(metadata_array)
                 line = file.readline().rstrip().strip().replace(" ", "")
+
+            # check data type:
+            data_type = []
+            line_item = line.split('|')
+            for item in line_item:
+                if GeneralFunction.check_is_float(item):
+                    data_type.append('float')
+                else:
+                    data_type.append('string')
+
+            self.data_type = data_type
+
             # Input data into dictionary
             iterator = 0
             while line:
                 line_item = line.split('|')
-                self.main_table[str(iterator)] = DbObject.DbObject([line_item[i] for i in range(0, len(line_item))])
+                object_array = []
+                for index, d_type in enumerate(data_type):
+                    matching_value = line_item[index]
+                    if d_type == 'float':
+                        object_array.append(float(matching_value))
+                    else:
+                        object_array.append(matching_value)
+
+                self.main_table[str(iterator)] = DbObject.DbObject(object_array)
                 line = file.readline().rstrip().strip().replace(" ", "")
                 iterator += 1
             file.close()
@@ -107,24 +138,12 @@ class DatabaseFunction:
         # define prepare_sort function and import operator
         # import itemgetter to take input from list variables and sort
 
-        sorted_table = sorted(self.main_table.items(), key=lambda x: self.prepare_sort(x, require_index))
+        sorted_table = sorted(self.main_table.items(), key=lambda x: operator.itemgetter(*require_index)(x[1].value))
 
         # covert the list of tuples into dictionary
         new_dict = GeneralFunction.convert_tuples_into_dic(sorted_table)
 
-        return self.metadata, new_dict
-
-        # get the sorted items list identifying whether it is integer or string, further return items.
-    @staticmethod
-    def prepare_sort(x, require_index):
-        items = operator.itemgetter(*require_index)(x[1].value)
-        item_list = list(items)
-        for idx, value in enumerate(item_list):
-            if value.isdigit():
-                item_list[idx] = int(value)
-        items = tuple(item_list)
-        return items
-
+        return self.metadata, self.data_type, new_dict
 
     # Return the value of moving average in metadata.
     # type variables: array - first is header and second is moving average period of time n
@@ -134,9 +153,11 @@ class DatabaseFunction:
         require_header = variables[0]
         period_of_time = int(variables[1])
 
-        new_metadata = [self.metadata[0], require_header]
+        new_metadata = self.metadata.extend([require_header])
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
+        new_data_type = [item for item in self.data_type]
+        new_data_type.append(self.data_type[require_index])
 
         new_dict = {}
         # moving average counting
@@ -151,12 +172,15 @@ class DatabaseFunction:
                 if index < 0:
                     break
                 current_dbobj = list(self.main_table.values())[index]
-                moving_avg += int(current_dbobj.value[require_index])
+                moving_avg += current_dbobj.value[require_index]
                 count += 1
 
-            new_dict[key] = moving_avg/count
+            mov_avg_value = moving_avg/count
+            new_value = [item for item in self.main_table[key].value]
+            new_value.append(mov_avg_value)
+            new_dict[key] = DbObject.DbObject(new_value)
 
-        return new_metadata, new_dict
+        return new_metadata, new_data_type, new_dict
 
     # Return the value of moving sum in metadata.
     # type variables: array - first is header and second is moving sum window_size
@@ -165,7 +189,6 @@ class DatabaseFunction:
     def mov_sum(self, variables):
         require_header = variables[0]
         window_size = int(variables[1])
-        start = time.time()
 
         new_metadata = [self.metadata[0], require_header]
         # get the index of parameters in metadata
@@ -187,7 +210,6 @@ class DatabaseFunction:
 
                 new_dict[key] = moving_sum
 
-        GeneralFunction.print_time(start, time.time())
         return new_metadata, new_dict
 
     # Return average value of the column.
@@ -198,13 +220,14 @@ class DatabaseFunction:
 
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
+        new_data_type = self.data_type[0]
 
         total_sum = 0
         for key in self.main_table:
-            total_sum += int(self.main_table[key].value[require_index[0]])
+            total_sum += self.main_table[key].value[require_index[0]]
         total_average = total_sum / len(self.main_table)
 
-        return ['avg_' + require_metadata[0]], {None: total_average}
+        return ['avg_' + require_metadata[0]], new_data_type, {None: total_average}
 
     # Return sum of the sum_header and group by group_header.
     # type sum_header: str - the column to sum up
@@ -218,12 +241,14 @@ class DatabaseFunction:
         # get the index of parameters in metadata
         group_index = GeneralFunction.get_index_of_metadata(self.metadata, group_header)
 
+        new_data_type = [self.data_type[i] for i in group_index] + [self.data_type[i] for i in sum_index]
+
         group_dict = {}
 
         for key in self.main_table:
             new_key_string, group_dict = self.update_sum_group_dict(group_dict, key, group_index, sum_index)
 
-        return [header for header in group_header] + ['sum_' + sum_header], group_dict
+        return [header for header in group_header] + ['sum_' + sum_header], new_data_type, group_dict
 
     # Return avg of the avg_header and group by group_header.
     # type avg_header: str - the column to count average
@@ -236,6 +261,8 @@ class DatabaseFunction:
         avg_index = GeneralFunction.get_index_of_metadata(self.metadata, [avg_header])
         # get the index of parameters in metadata
         group_index = GeneralFunction.get_index_of_metadata(self.metadata, group_header)
+
+        new_data_type = [self.data_type[i] for i in group_index] + [self.data_type[i] for i in avg_index]
 
         group_dict = {}
         count_dict = {}
@@ -250,9 +277,9 @@ class DatabaseFunction:
 
         for key in group_dict:
             group_value = group_dict[key]
-            group_value[-1] = str(int(group_value[-1]) / count_dict[key])
+            group_value[-1] = str(group_value[-1] / count_dict[key])
         
-        return [header for header in group_header] + ['avg_' + avg_header], group_dict
+        return [header for header in group_header] + ['avg_' + avg_header], new_data_type, group_dict
 
     # Create index by input metadata.
     # type metadata: str - the column to create index
@@ -296,7 +323,7 @@ class DatabaseFunction:
         new_key_string = str(new_key)
         if group_dict.get(new_key_string):
             value = group_dict[new_key_string]
-            value[-1] = str(int(value[-1]) + int(self.main_table[key].value[target_index[0]]))
+            value[-1] = value[-1] + self.main_table[key].value[target_index[0]]
         else:
             group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[target_index[0]]]
 
@@ -324,12 +351,10 @@ class DatabaseFunction:
 
         return new_key_string, group_dict
 
-
     # concatenate the two tables based on the schema.
     # type con_table2: tuple - the table that concatenate with self.main_table
     # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
     def concat(self, con_table2):
-        start = time.time()
         new_dict = {}
         if self.metadata == con_table2.metedata:
             iterator = 0
@@ -341,11 +366,8 @@ class DatabaseFunction:
                 new_dict[iterator] = con_table2[key]
                 iterator += 1
 
-        new_metadata = [item for item in self.metadata]
-        new_metadata.extend(con_table2.metadata)
-        GeneralFunction.print_time(start, time.time())
+        return self.metadata, self.data_type, new_dict
 
-        return new_metadata, new_dict
     # Join function.
     # type current_name: str - current table name to join
     # type source_name: str - source table name for join
@@ -402,15 +424,22 @@ class DatabaseFunction:
                         if new_key not in new_dict:
                             source_main = source_table.main_table[source_key]
                             if ConditionObject.check_join_condition(cond, current_name, current_main, self.metadata,
-                                                                    source_name, source_main, source_table.metadata):
+                                                                    source_main, source_table.metadata):
                                 new_value = [item for item in current_main.value]
                                 new_value.extend(source_main.value)
                                 new_dict[new_key] = DbObject.DbObject(new_value)
 
-        new_metadata = [current_name + '_' + item for item in self.metadata]
-        new_metadata.extend([source_name + '_' + item for item in source_table.metadata])
+        new_metadata = []
+        new_data_type = []
+        for index, item in enumerate(self.metadata):
+            new_metadata.append(current_name + '_' + item)
+            new_data_type.append(self.data_type[index])
 
-        return new_metadata, new_dict
+        for index, item in enumerate(source_table.metadata):
+            new_metadata.append(current_name + '_' + item)
+            new_data_type.append(self.data_type[index])
+
+        return new_metadata, new_data_type, new_dict
 
     # join through single index.
     @staticmethod
@@ -444,24 +473,14 @@ class DatabaseFunction:
 
         print(total_sum)
 
-        return ['sum_' + require_metadata[0]], {None: total_sum}
+        return ['sum_' + require_metadata[0]], [self.data_type[require_index[0]]], {None: total_sum}
 
     # Return sum value of the column.
     # type require_metadata: array - desired metadata which exist in this table
     # rtype require_metadata: array - return the input sum_ + require_metadata
     # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome average
     def count(self, require_metadata):
-
-        # get the index of parameters in metadata
-        require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
-
-        total_count = 0
-        for key in self.main_table:
-            total_count += 1
-
-        return ['count_' + require_metadata[0]], {None: total_count}
-
-        print(total_count)
+        return ['count_' + require_metadata[0]], ['float'], {None: len(self.main_table)}
 
     # Return count of the count_header and group by count_header.
     # type count_header: str - the column to count as count
@@ -474,6 +493,8 @@ class DatabaseFunction:
         # get the index of parameters in metadata
         group_index = GeneralFunction.get_index_of_metadata(self.metadata, group_header)
 
+        new_data_type = [self.data_type[i] for i in group_index] + [self.data_type[i] for i in count_index]
+
         group_dict = {}
         count_dict = {}
 
@@ -485,4 +506,4 @@ class DatabaseFunction:
             else:
                 count_dict[new_key_string] = 1
 
-        return [header for header in group_header] + ['count_' + count_header], group_dict
+        return [header for header in group_header] + ['count_' + count_header], new_data_type, group_dict
