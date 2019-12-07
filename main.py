@@ -1,5 +1,6 @@
-from generalFunction import GeneralFunction
+from GeneralFunction import GeneralFunction
 from ParameterAssignmentTable import ParameterAssignmentTable
+import time
 
 # This table is for mapping the user input variable and actual table
 parameter_assignment_table = ParameterAssignmentTable()
@@ -20,6 +21,8 @@ parameter_assignment_table.set_database_type(database_type)
 def perform_input_action(assign_name, function_name, variables):
     function_name = function_name.lower()
 
+    start = time.time()
+
     # Create table in parameter table if the table not exist
     if function_name != 'hash' or function_name != 'hash':
         parameter_assignment_table.create_parameter_assignment_table(assign_name)
@@ -31,6 +34,7 @@ def perform_input_action(assign_name, function_name, variables):
     if function_name == 'inputfromfile':
         temp_table = parameter_assignment_table.get_parameter_assignment_table(assign_name)
         temp_table.input_from_file(variables, True)
+        temp_table.assign_name(assign_name)
 
     # Action: project
     if function_name == 'project':
@@ -49,7 +53,7 @@ def perform_input_action(assign_name, function_name, variables):
 
     # Action: sort
     if function_name == 'sort':
-        table_parameter= variables[0]
+        table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
         meta_data, new_dict = temp_old_table.sort(variables[1::])
@@ -57,8 +61,8 @@ def perform_input_action(assign_name, function_name, variables):
 
     # Action: movavg
     if function_name == 'movavg':
-        table_parameter= variables[0]
-        temp_old_table = parameter_assignment_table[table_parameter]
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
         meta_data, new_dict = temp_old_table.mov_avg(variables[1::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
@@ -127,28 +131,85 @@ def perform_input_action(assign_name, function_name, variables):
         meta_data, new_dict = temp_old_table.concat(table_parameter2, temp_old_table2, variables[2])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
 
+    # Action: sum
+    if function_name == 'sum':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, new_dict = temp_old_table.sum(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+
+    # Action: count
+    if function_name == 'count':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, new_dict = temp_old_table.count(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+
+    # Action: countgroup
+    if function_name == 'countgroup':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, new_dict = temp_old_table.count_group(variables[1], variables[2::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
 
 
 
 
 
+        #temp_old_table1 = parameter_assignment_table.get_parameter_assignment_table(table_parameter1)
+        #table_parameter2 = variables[1]
+        #temp_old_table2 = parameter_assignment_table.get_parameter_assignment_table(table_parameter2)
+        #meta_data, new_dict = temp_old_table1.join(table_parameter1, table_parameter2, temp_old_table2, variables[2])
+        #parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+
+    #GeneralFunction.print_time(start, time.time(), function_name, inputString)
 
 
 # __TODO__ Below block is for testing purpose only
-
-inputString = 'R := inputfromfile(sales1)'
-
-assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-perform_input_action(assignName, actionName, actionParameters)
-
-inputString = 'R1 := select(R, (time > 50) or (qty < 30))'
+inputString = 'R := inputfromfile(test)'
 
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-#inputString = "R2 := project(R1, saleid, qty, pricerange)"
+#inputString = 'R1 := select(R, (time > 50) or (qty < 30))'
 
 #assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 #perform_input_action(assignName, actionName, actionParameters)
 
 
+#inputString = 'R3 := sum(R, qty)'
+
+#assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+#perform_input_action(assignName, actionName, actionParameters)
+
+#rTable = parameter_assignment_table.get_parameter_assignment_table('R3').main_table
+
+#print(len(rTable))
+
+#inputString = 'C1 := count(R, qty)'
+
+#assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+#perform_input_action(assignName, actionName, actionParameters)
+
+inputString = 'R7 := countgroup(R, qty, pricerange)'
+
+assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+perform_input_action(assignName, actionName, actionParameters)
+
+#inputString = 'S := inputfromfile(sales2)'
+#assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+#perform_input_action(assignName, actionName, actionParameters)
+
+#inputString = 'R := hash(S, C)'
+#assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+#perform_input_action(assignName, actionName, actionParameters)
+
+#inputString = 'R4 :=  join(R, S, R.customerid = S.C)'
+#assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+#perform_input_action(assignName, actionName, actionParameters)
+
+rTable = parameter_assignment_table.get_parameter_assignment_table('r7')
+print(rTable)

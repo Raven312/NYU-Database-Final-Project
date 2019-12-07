@@ -1,29 +1,37 @@
 from databaseStructure import DbObject
-from generalFunction import GeneralFunction
+from GeneralFunction import GeneralFunction
 from ConditionObject import ConditionObject
-import time
 import operator
-import numpy as np
 
 
 class DatabaseFunction:
     def __init__(self):
         # Implement Hash Table from python in-build dictionary.
+        self.name = ''
         self.metadata = []
         self.main_table = {}
         self.index = {}
 
+    # Assign the name to the table.
+    # type assign_name: array
+    def assign_name(self, assign_name):
+        self.name = assign_name
+
     # Assign the meta_data to the table.
     # type metadata: array
-    def create_table(self, metadata):
+    def assign_metadata(self, metadata):
         self.metadata = metadata
+
+    # Assign the main_table to the table.
+    # type main_table: dict
+    def assign_main_table(self, main_table):
+        self.main_table = main_table
 
     # Copy this table based on the input metadata.
     # type require_metadata: array - desired metadata which exist in this table
     # rtype require_metadata: array - return the input require_metadata
     # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
     def project(self, require_metadata):
-        start = time.time()
 
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
         new_dict = {}
@@ -32,7 +40,6 @@ class DatabaseFunction:
             current_value = self.main_table[key].value
             new_dict[key] = DbObject.DbObject([current_value[i] for i in require_index])
 
-        GeneralFunction.print_time(start, time.time())
         return require_metadata, new_dict
 
     # Select this table based on the condition.
@@ -40,10 +47,9 @@ class DatabaseFunction:
     # rtype require_metadata: array - return the original metadata
     # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
     def select(self, parameter):
-        start = time.time()
 
         new_dict = {}
-        conditions = GeneralFunction.transform_condition_to_object(parameter)
+        conditions = ConditionObject.transform_condition_to_object(parameter)
         # If index exist, using index to select the condition in equal
         if self.exist_index(parameter):
             item_position = []
@@ -64,22 +70,20 @@ class DatabaseFunction:
                     if ConditionObject.check_condition(cond, current, self.metadata):
                         new_dict[key] = current
 
-        GeneralFunction.print_time(start, time.time())
         return self.metadata, new_dict
 
     # Input data from file.
     # type file_name: array - file name without type which exist in the rowData directory
     # type create_metadata_flag: boolean - to put the first line in the file as the metadata of this table
     def input_from_file(self, file_name, create_metadata_flag):
-        start = time.time()
 
         for name in file_name:
             file = open('rowData/' + name + '.txt')
             line = file.readline().rstrip().strip().replace(" ", "")
             # Create metadata
             if create_metadata_flag:
-                metadata_array = line.split('|')
-                self.create_table(metadata_array)
+                metadata_array = line.lower().split('|')
+                self.assign_metadata(metadata_array)
                 line = file.readline().rstrip().strip().replace(" ", "")
             # Input data into dictionary
             iterator = 0
@@ -90,14 +94,11 @@ class DatabaseFunction:
                 iterator += 1
             file.close()
 
-        GeneralFunction.print_time(start, time.time())
-
     # Sort this table by parameters in metadata.
     # type require_metadata: array - desired metadata which exist in this table
     # rtype require_metadata: array - return the input require_metadata
     # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
     def sort(self, require_metadata):
-        start = time.time()
 
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
@@ -111,7 +112,6 @@ class DatabaseFunction:
         # covert the list of tuples into dictionary
         new_dict = GeneralFunction.convert_tuples_into_dic(sorted_table)
 
-        GeneralFunction.print_time(start, time.time())
         return self.metadata, new_dict
 
         # get the sorted items list identifying whether it is integer or string, further return items.
@@ -133,7 +133,6 @@ class DatabaseFunction:
     def mov_avg(self, variables):
         require_header = variables[0]
         period_of_time = int(variables[1])
-        start = time.time()
 
         new_metadata = [self.metadata[0], require_header]
         # get the index of parameters in metadata
@@ -157,7 +156,6 @@ class DatabaseFunction:
 
             new_dict[key] = moving_avg/count
 
-        GeneralFunction.print_time(start, time.time())
         return new_metadata, new_dict
 
     # Return the value of moving sum in metadata.
@@ -197,7 +195,6 @@ class DatabaseFunction:
     # rtype require_metadata: array - return the input avg_ + require_metadata
     # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome average
     def average(self, require_metadata):
-        start = time.time()
 
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
@@ -206,8 +203,6 @@ class DatabaseFunction:
         for key in self.main_table:
             total_sum += int(self.main_table[key].value[require_index[0]])
         total_average = total_sum / len(self.main_table)
-
-        GeneralFunction.print_time(start, time.time())
 
         return ['avg_' + require_metadata[0]], {None: total_average}
 
@@ -218,7 +213,6 @@ class DatabaseFunction:
     # rtype group_dict: dictionary - new dictionary which have key equal to the value of the column in group_header,
     # and value of group_header and sum of sum_header.
     def sum_group(self, sum_header, group_header):
-        start = time.time()
 
         sum_index = GeneralFunction.get_index_of_metadata(self.metadata, [sum_header])
         # get the index of parameters in metadata
@@ -227,9 +221,7 @@ class DatabaseFunction:
         group_dict = {}
 
         for key in self.main_table:
-            new_key_string, group_dict = self.update_group_dict(group_dict, key, group_index, sum_index)
-
-        GeneralFunction.print_time(start, time.time())
+            new_key_string, group_dict = self.update_sum_group_dict(group_dict, key, group_index, sum_index)
 
         return [header for header in group_header] + ['sum_' + sum_header], group_dict
 
@@ -240,7 +232,6 @@ class DatabaseFunction:
     # rtype group_dict: dictionary - new dictionary which have key equal to the value of the column in group_header,
     # and value of group_header and sum of sum_header.
     def avg_group(self, avg_header, group_header):
-        start = time.time()
 
         avg_index = GeneralFunction.get_index_of_metadata(self.metadata, [avg_header])
         # get the index of parameters in metadata
@@ -250,7 +241,7 @@ class DatabaseFunction:
         count_dict = {}
 
         for key in self.main_table:
-            new_key_string, group_dict = self.update_group_dict(group_dict, key, group_index, avg_index)
+            new_key_string, group_dict = self.update_sum_group_dict(group_dict, key, group_index, avg_index)
 
             if count_dict.get(new_key_string):
                 count_dict[new_key_string] += 1
@@ -260,8 +251,6 @@ class DatabaseFunction:
         for key in group_dict:
             group_value = group_dict[key]
             group_value[-1] = str(int(group_value[-1]) / count_dict[key])
-
-        GeneralFunction.print_time(start, time.time())
         
         return [header for header in group_header] + ['avg_' + avg_header], group_dict
 
@@ -269,7 +258,6 @@ class DatabaseFunction:
     # type metadata: str - the column to create index
     # rtype None
     def create_index(self, metadata):
-        start = time.time()
 
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, [metadata])
@@ -283,8 +271,6 @@ class DatabaseFunction:
                 new_dic[new_key] = [key]
 
         self.index[metadata] = new_dic
-
-        GeneralFunction.print_time(start, time.time())
 
     # Check if index exist.
     # type parameters: str
@@ -302,7 +288,7 @@ class DatabaseFunction:
     # type group_index: array - group index arrays
     # type target_index: array - target index arrays
     # rtype str, dictionary
-    def update_group_dict(self, group_dict, key, group_index, target_index):
+    def update_sum_group_dict(self, group_dict, key, group_index, target_index):
         new_key = []
         for index in group_index:
             new_key.append(self.main_table[key].value[index])
@@ -313,6 +299,28 @@ class DatabaseFunction:
             value[-1] = str(int(value[-1]) + int(self.main_table[key].value[target_index[0]]))
         else:
             group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[target_index[0]]]
+
+        return new_key_string, group_dict
+
+    # Update the dictionary in group function.
+    # type group_dict: dict
+    # type key: str - current key in main table
+    # type group_index: array - group index arrays
+    # type target_index: array - target index arrays
+    # rtype str, dictionary
+    def update_count_group_dict(self, group_dict, key, group_index, target_index):
+        new_key = []
+        count = 0
+
+        for index in group_index:
+            new_key.append(self.main_table[key].value[index])
+
+        new_key_string = str(new_key)
+        if group_dict.get(new_key_string):
+            value = group_dict[new_key_string]
+            value[-1] = str(int(value[-1]) + 1)
+        else:
+            group_dict[new_key_string] = [k for k in new_key] + ['1']
 
         return new_key_string, group_dict
 
@@ -338,3 +346,143 @@ class DatabaseFunction:
         GeneralFunction.print_time(start, time.time())
 
         return new_metadata, new_dict
+    # Join function.
+    # type current_name: str - current table name to join
+    # type source_name: str - source table name for join
+    # type source_table: DbObject - group index arrays
+    # type parameter: str
+    # rtype new_metadata: array - return the two tables metadata
+    # rtype new_dic: dictionary - new dictionary that join the two table based on the conditions
+    def join(self, current_name, source_name, source_table, parameter):
+
+        new_dict = {}
+        conditions = ConditionObject.transform_condition_to_object(parameter)
+        # If index exist, using index to select the condition in equal
+
+        have_index = False
+        for cond in conditions:
+            for key in cond.equal_dict:
+                table1_value = key.split('.')
+                table1_name = table1_value[0]
+                table1_column = table1_value[1]
+                for source_value in cond.equal_dict[key]:
+                    table2_value = source_value.split('.')
+                    table2_name = table2_value[0]
+                    table2_column = table2_value[1]
+
+                    # index exist in current table
+                    if table1_name == current_name and table1_column in self.index:
+                        have_index = True
+                        self.join_through_single_index(new_dict, self.index, self.main_table, source_table.main_table, source_table.metadata, table1_column, table2_column)
+
+                    elif table2_name == current_name and table2_column in self.index:
+                        have_index = True
+                        self.join_through_single_index(new_dict, self.index, self.main_table, source_table.main_table, source_table.metadata, table2_column, table1_column)
+
+                    # index exist in source table
+                    elif table1_name == source_name and table1_column in source_table.index:
+                        have_index = True
+                        self.join_through_single_index(new_dict, source_table.index, source_table.main_table, self.main_table, self.metadata, table1_column, table2_column)
+
+                    elif table2_name == source_name and table2_column in source_table.index:
+                        have_index = True
+                        self.join_through_single_index(new_dict, source_table.index, source_table.main_table, self.main_table, self.metadata, table2_column, table1_column)
+
+        # remove equal condition if index already run it.
+        if have_index:
+            for cond in conditions:
+                cond.equal_dict = {}
+
+        for cond in conditions:
+            if not cond.is_empty():
+                for key in self.main_table:
+                    current_main = self.main_table[key]
+                    for source_key in source_table.main_table:
+                        new_key = key + '_' + source_key
+                        if new_key not in new_dict:
+                            source_main = source_table.main_table[source_key]
+                            if ConditionObject.check_join_condition(cond, current_name, current_main, self.metadata,
+                                                                    source_name, source_main, source_table.metadata):
+                                new_value = [item for item in current_main.value]
+                                new_value.extend(source_main.value)
+                                new_dict[new_key] = DbObject.DbObject(new_value)
+
+        new_metadata = [current_name + '_' + item for item in self.metadata]
+        new_metadata.extend([source_name + '_' + item for item in source_table.metadata])
+
+        return new_metadata, new_dict
+
+    # join through single index.
+    @staticmethod
+    def join_through_single_index(new_dict, index, main_table, source_table, source_metadata, table1_column, table2_column):
+        source_require_index = GeneralFunction.get_index_of_metadata(source_metadata,
+                                                                     [table2_column])
+        table1_index = index[table1_column]
+
+        for source_key in source_table:
+            item_position = []
+            source_v = source_table[source_key].value[source_require_index[0]]
+            if source_v in table1_index:
+                item_position.extend(table1_index[source_v])
+            for position in item_position:
+                new_value = main_table[position].value
+                new_value.extend(source_table[source_key].value)
+                new_dict[position + '_' + source_key] = DbObject.DbObject(new_value)
+
+    # Return sum value of the column.
+    # type require_metadata: array - desired metadata which exist in this table
+    # rtype require_metadata: array - return the input sum_ + require_metadata
+    # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome average
+    def sum(self, require_metadata):
+
+        # get the index of parameters in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
+
+        total_sum = 0
+        for key in self.main_table:
+            total_sum += int(self.main_table[key].value[require_index[0]])
+
+        print(total_sum)
+
+        return ['sum_' + require_metadata[0]], {None: total_sum}
+
+    # Return sum value of the column.
+    # type require_metadata: array - desired metadata which exist in this table
+    # rtype require_metadata: array - return the input sum_ + require_metadata
+    # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome average
+    def count(self, require_metadata):
+
+        # get the index of parameters in metadata
+        require_index = GeneralFunction.get_index_of_metadata(self.metadata, require_metadata)
+
+        total_count = 0
+        for key in self.main_table:
+            total_count += 1
+
+        return ['count_' + require_metadata[0]], {None: total_count}
+
+        print(total_count)
+
+    # Return count of the count_header and group by count_header.
+    # type count_header: str - the column to count as count
+    # type group_header: array - the columns to group by
+    # rtype array - return the group_header and 'count_' + count_header
+    # rtype group_dict: dictionary - new dictionary which have key equal to the value of the column in group_header,
+    # and value of group_header and sum of count_header.
+    def count_group(self, count_header, group_header):
+        count_index = GeneralFunction.get_index_of_metadata(self.metadata, [count_header])
+        # get the index of parameters in metadata
+        group_index = GeneralFunction.get_index_of_metadata(self.metadata, group_header)
+
+        group_dict = {}
+        count_dict = {}
+
+        for key in self.main_table:
+            new_key_string, group_dict = self.update_count_group_dict(group_dict, key, group_index, count_index)
+
+            if count_dict.get(new_key_string):
+                count_dict[new_key_string] += 1
+            else:
+                count_dict[new_key_string] = 1
+
+        return [header for header in group_header] + ['count_' + count_header], group_dict

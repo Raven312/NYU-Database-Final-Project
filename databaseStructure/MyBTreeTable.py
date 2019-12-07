@@ -7,6 +7,7 @@ class MyBTreeTable(DatabaseFunction):
     def __init__(self):
         super().__init__()
         # Implement Hash Table from python in-build dictionary.
+        self.name = ''
         self.metadata = []
         self.main_table = OOBTree()
         self.index = OOBTree()
