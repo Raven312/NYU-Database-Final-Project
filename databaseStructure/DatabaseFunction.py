@@ -114,18 +114,6 @@ class DatabaseFunction:
 
         return self.metadata, new_dict
 
-        # get the sorted items list identifying whether it is integer or string, further return items.
-    @staticmethod
-    def prepare_sort(x, require_index):
-        items = operator.itemgetter(*require_index)(x[1].value)
-        item_list = list(items)
-        for idx, value in enumerate(item_list):
-            if value.isdigit():
-                item_list[idx] = int(value)
-        items = tuple(item_list)
-        return items
-
-
     # Return the value of moving average in metadata.
     # type variables: array - first is header and second is moving average period of time n
     # rtype new_metadata: array - return the key and input header
@@ -326,7 +314,7 @@ class DatabaseFunction:
                         if new_key not in new_dict:
                             source_main = source_table.main_table[source_key]
                             if ConditionObject.check_join_condition(cond, current_name, current_main, self.metadata,
-                                                                    source_name, source_main, source_table.metadata):
+                                                                    source_main, source_table.metadata):
                                 new_value = [item for item in current_main.value]
                                 new_value.extend(source_main.value)
                                 new_dict[new_key] = DbObject.DbObject(new_value)
@@ -352,3 +340,14 @@ class DatabaseFunction:
                 new_value = main_table[position].value
                 new_value.extend(source_table[source_key].value)
                 new_dict[position + '_' + source_key] = DbObject.DbObject(new_value)
+
+    # get the sorted items list identifying whether it is integer or string, further return items.
+    @staticmethod
+    def prepare_sort(x, require_index):
+        items = operator.itemgetter(*require_index)(x[1].value)
+        item_list = list(items)
+        for idx, value in enumerate(item_list):
+            if value.isdigit():
+                item_list[idx] = int(value)
+        items = tuple(item_list)
+        return items

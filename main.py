@@ -114,25 +114,44 @@ def perform_input_action(assign_name, function_name, variables):
         meta_data, new_dict = temp_old_table1.join(table_parameter1, table_parameter2, temp_old_table2, variables[2])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
 
+    if function_name == 'outputtofile':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
+        with open('output/' + variables[1] + '.txt', 'w') as file:
+            # write metadata at first line
+            meta_data_string = ''
+            for value in temp_old_table.metadata:
+                meta_data_string = meta_data_string + value + '|'
+            meta_data_string = meta_data_string[0: len(meta_data_string) - 1]
+            file.writelines(meta_data_string + '\n')
+
+            # write values
+            for key in temp_old_table.main_table:
+                value_string = ''
+                current_obj = temp_old_table.main_table[key]
+                for value in current_obj.value:
+                    value_string = value_string + value + '|'
+                value_string = value_string[0:len(value_string) - 1]
+                file.writelines(value_string + '\n')
+
+        file.close()
+
     GeneralFunction.print_time(start, time.time(), function_name, inputString)
 
 
 # __TODO__ Below block is for testing purpose only
-inputString = 'R := inputfromfile(sales1)'
+inputString = 'R:= inputfromfile(test)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'S := inputfromfile(sales2)'
+inputString = 'S := inputfromfile(test2)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'Q := select(R,  qty <= 0)'
+inputString = 'R1 := select(R, (time > 50) or (qty < 30))'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-# inputString = 'R4 :=  join(R, S, R.customerid = S.C)'
-# assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-# perform_input_action(assignName, actionName, actionParameters)
 
-rTable = parameter_assignment_table.get_parameter_assignment_table('q').main_table
+rTable = parameter_assignment_table.get_parameter_assignment_table('r1').main_table
 print(len(rTable))

@@ -19,7 +19,7 @@ class GeneralFunction:
             assign_name = input_string[0:assign_name_index]
             # Get the function name.
             function_name = input_string[assign_name_index + 2:parameter_start_index]
-        elif 'btree' in input_string or 'hash' in input_string:
+        elif 'btree' in input_string or 'hash' in input_string or 'outputtofile' in input_string:
             # Get the function name.
             function_name = input_string[0:parameter_start_index]
 

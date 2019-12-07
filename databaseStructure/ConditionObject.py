@@ -160,8 +160,8 @@ def apply_join_condition(condition_dict, op, current_name, current_main, current
                 table1_require_index = GeneralFunction.get_index_of_metadata(current_metadata, [table1_column])
                 table2_require_index = GeneralFunction.get_index_of_metadata(source_metadata, [table2_column])
             else:
-                table1_require_index = GeneralFunction.get_index_of_metadata(source_metadata, [table2_column])
-                table2_require_index = GeneralFunction.get_index_of_metadata(current_metadata, [table1_column])
+                table1_require_index = GeneralFunction.get_index_of_metadata(source_metadata, [table1_column])
+                table2_require_index = GeneralFunction.get_index_of_metadata(current_metadata, [table2_column])
 
             if op_func(current_main.value[table1_require_index[0]], source_main.value[table2_require_index[0]]):
                 return False
@@ -216,7 +216,7 @@ def check_arithop(cond):
         return attribute + relop_symbol + str(constant)
 
     # If attribute is at the right side of inequality
-    if not cond[relop_index + relop_length::].isnumeric():
+    if not cond[relop_index + relop_length::].isnumeric() and cond[0:relop_index].isnumeric():
         attribute = cond[relop_index + relop_length::]
         constant = cond[0:relop_index]
         relop_symbol = cond[relop_index:relop_index + relop_length]
