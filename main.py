@@ -18,7 +18,7 @@ parameter_assignment_table.set_database_type(database_type)
 # type assign_name: str
 # type function_name: str
 # type parameters: array
-def perform_input_action(assign_name, function_name, variables):
+def perform_input_action(assign_name, function_name, variables, input_string):
     function_name = function_name.lower()
 
     start = time.time()
@@ -129,22 +129,25 @@ def perform_input_action(assign_name, function_name, variables):
 
         file.close()
 
-    GeneralFunction.print_time(start, time.time(), function_name, inputString)
+    GeneralFunction.print_time(start, time.time(), function_name, input_string)
 
 
-# __TODO__ Below block is for testing purpose only
-inputString = 'R:= inputfromfile(test)'
-assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-perform_input_action(assignName, actionName, actionParameters)
+# Read test file by user input file name
+def read_test(file_name):
+    file = open(file_name)
+    line = file.readline()
+    while line:
+        # Clean space and change line symbol
+        line = line.rstrip().strip().replace(" ", "")
+        # Get key information
+        assign_name, action_name, action_parameters = GeneralFunction.get_input_action(line)
+        # Perform db action
+        perform_input_action(assign_name, action_name, action_parameters, line)
 
-inputString = 'S := inputfromfile(test2)'
-assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-perform_input_action(assignName, actionName, actionParameters)
-
-inputString = 'R1 := movavg(R, qty, 3)'
-assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
-perform_input_action(assignName, actionName, actionParameters)
+        line = file.readline()
+    file.close()
 
 
-rTable = parameter_assignment_table.get_parameter_assignment_table('r1').main_table
-print(len(rTable))
+test_file_name = input("Please copy paste the test file to the home directory of this program and input the file name:")
+
+read_test(test_file_name)

@@ -41,7 +41,7 @@ class DatabaseFunction:
 
         # Project data type
         data_type = []
-        for index, value in self.data_type:
+        for index, value in enumerate(self.data_type):
             if index in require_index:
                 data_type.append(value)
 
@@ -232,7 +232,7 @@ class DatabaseFunction:
         # get the index of parameters in metadata
         group_index = GeneralFunction.get_index_of_metadata(self.metadata, group_header)
 
-        new_data_type = [self.data_type[i] for i in group_header] + [self.data_type[i] for i in avg_index]
+        new_data_type = [self.data_type[i] for i in group_index] + [self.data_type[i] for i in avg_index]
 
         group_dict = {}
         count_dict = {}
@@ -293,7 +293,7 @@ class DatabaseFunction:
         new_key_string = str(new_key)
         if group_dict.get(new_key_string):
             value = group_dict[new_key_string]
-            value[-1] = str(value[-1] + self.main_table[key].value[target_index[0]])
+            value[-1] = value[-1] + self.main_table[key].value[target_index[0]]
         else:
             group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[target_index[0]]]
 
