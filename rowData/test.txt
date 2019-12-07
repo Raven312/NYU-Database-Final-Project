@@ -11,7 +11,5 @@ saleid|itemid|customerid|storeid|time|qty|pricerange
 541|65|2|26|100|15|expensive
 
 
-count_qty | pricerange
-2 | moderate
-4 | outrageours
+
 

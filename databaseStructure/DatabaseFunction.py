@@ -153,7 +153,8 @@ class DatabaseFunction:
         require_header = variables[0]
         period_of_time = int(variables[1])
 
-        new_metadata = self.metadata.extend([require_header])
+        new_metadata = [item for item in self.metadata]
+        new_metadata.append('mov_avg')
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
         new_data_type = [item for item in self.data_type]
@@ -190,27 +191,32 @@ class DatabaseFunction:
         require_header = variables[0]
         window_size = int(variables[1])
 
-        new_metadata = [self.metadata[0], require_header]
+        new_metadata = [item for item in self.metadata]
+        new_metadata.append('mov_sum')
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
+        new_data_type = [item for item in self.data_type]
+        new_data_type.append(self.data_type[require_index])
 
         new_dict = {}
-        # moving sum counting
+        # moving average counting
         # current_index as list(self.main_table.keys()).index(key)
         for key in self.main_table:
-                current_index = list(self.main_table.keys()).index(key)
-                moving_sum = 0
-        # counting window_size and get new_dict[key]
-        for i in range(0, window_size):
-                index = current_index - i
+            current_index = list(self.main_table.keys()).index(key)
+            moving_sum = 0
+            # counting period_of_time and get new_dict[key]
+            for j in range(0, window_size):
+                index = current_index - j
                 if index < 0:
                     break
                 current_dbobj = list(self.main_table.values())[index]
-                moving_sum += int(current_dbobj.value[require_index])
+                moving_sum += current_dbobj.value[require_index]
 
-                new_dict[key] = moving_sum
+            new_value = [item for item in self.main_table[key].value]
+            new_value.append(moving_sum)
+            new_dict[key] = DbObject.DbObject(new_value)
 
-        return new_metadata, new_dict
+        return new_metadata, new_data_type, new_dict
 
     # Return average value of the column.
     # type require_metadata: array - desired metadata which exist in this table
