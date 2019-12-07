@@ -171,7 +171,7 @@ class DatabaseFunction:
                 if index < 0:
                     break
                 current_dbobj = list(self.main_table.values())[index]
-                moving_avg += int(current_dbobj.value[require_index])
+                moving_avg += current_dbobj.value[require_index]
                 count += 1
 
             new_dict[key] = moving_avg/count
@@ -190,7 +190,7 @@ class DatabaseFunction:
 
         total_sum = 0
         for key in self.main_table:
-            total_sum += int(self.main_table[key].value[require_index[0]])
+            total_sum += self.main_table[key].value[require_index[0]]
         total_average = total_sum / len(self.main_table)
 
         return ['avg_' + require_metadata[0]], new_data_type, {None: total_average}
@@ -243,7 +243,7 @@ class DatabaseFunction:
 
         for key in group_dict:
             group_value = group_dict[key]
-            group_value[-1] = str(int(group_value[-1]) / count_dict[key])
+            group_value[-1] = str(group_value[-1] / count_dict[key])
         
         return [header for header in group_header] + ['avg_' + avg_header], new_data_type, group_dict
 
@@ -289,7 +289,7 @@ class DatabaseFunction:
         new_key_string = str(new_key)
         if group_dict.get(new_key_string):
             value = group_dict[new_key_string]
-            value[-1] = str(int(value[-1]) + int(self.main_table[key].value[target_index[0]]))
+            value[-1] = str(value[-1] + self.main_table[key].value[target_index[0]])
         else:
             group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[target_index[0]]]
 

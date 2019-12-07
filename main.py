@@ -141,7 +141,7 @@ inputString = 'S := inputfromfile(test2)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'R1:= movavg(R,qty, 3)'
+inputString = 'R1:= avg(R,qty)'
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
