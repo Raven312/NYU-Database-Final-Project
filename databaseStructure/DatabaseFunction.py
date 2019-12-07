@@ -153,10 +153,11 @@ class DatabaseFunction:
         require_header = variables[0]
         period_of_time = int(variables[1])
 
-        new_metadata = [require_header]
+        new_metadata = self.metadata.extend([require_header])
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, [require_header])[0]
-        new_data_type = self.data_type[require_index]
+        new_data_type = [item for item in self.data_type]
+        new_data_type.append(self.data_type[require_index])
 
         new_dict = {}
         # Moving average counting
@@ -174,7 +175,10 @@ class DatabaseFunction:
                 moving_avg += current_dbobj.value[require_index]
                 count += 1
 
-            new_dict[key] = moving_avg/count
+            mov_avg_value = moving_avg/count
+            new_value = [item for item in self.main_table[key].value]
+            new_value.append(mov_avg_value)
+            new_dict[key] = DbObject.DbObject(new_value)
 
         return new_metadata, new_data_type, new_dict
 
