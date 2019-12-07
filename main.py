@@ -71,6 +71,14 @@ def perform_input_action(assign_name, function_name, variables):
         meta_data, new_dict = temp_old_table.average(variables[1::])
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
 
+    # Action: movsum
+    if function_name == 'movsum':
+        table_parameter = variables[0]
+        temp_old_table = parameter_assignment_table[table_parameter]
+        # Passing parameter except the first value as first value is table_parameter
+        meta_data, new_dict = temp_old_table.mov_sum(variables[1::])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+
     # Action: sumgroup
     if function_name == 'sumgroup':
         table_parameter = variables[0]
@@ -101,16 +109,46 @@ def perform_input_action(assign_name, function_name, variables):
         # Passing parameter except the first value as first value is table_parameter
         temp_old_table.create_index(variables[1])
 
+    # Action: join
+    if function_name == 'join':
+        table_parameter1 = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter1)
+        table_parameter2 = variables[1]
+        temp_old_table2 = parameter_assignment_table.get_parameter_assignment_table(table_parameter2)
+        meta_data, new_dict = temp_old_table.join(table_parameter2, temp_old_table2, variables[2])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+
+    # Action: concat
+    if function_name == 'concat':
+        table_parameter1 = variables[0]
+        temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter1)
+        table_parameter2 = variables[1]
+        temp_old_table2 = parameter_assignment_table.get_parameter_assignment_table(table_parameter2)
+        meta_data, new_dict = temp_old_table.concat(table_parameter2, temp_old_table2, variables[2])
+        parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, new_dict)
+
+
+
+
+
+
+
 
 # __TODO__ Below block is for testing purpose only
 
 inputString = 'R := inputfromfile(sales1)'
+
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-inputString = 'R4 := avggroup(R, time, qty)'
+inputString = 'R1 := select(R, (time > 50) or (qty < 30))'
+
 assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
 perform_input_action(assignName, actionName, actionParameters)
 
-rTable = parameter_assignment_table.get_parameter_assignment_table('q3').main_table
-print(len(rTable))
+#inputString = "R2 := project(R1, saleid, qty, pricerange)"
+
+#assignName, actionName, actionParameters = GeneralFunction.get_input_action(inputString)
+#perform_input_action(assignName, actionName, actionParameters)
+
+
