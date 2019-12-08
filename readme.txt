@@ -14,6 +14,7 @@ to observe the performance and whether it can execute correctly and concisely.
 cd to the project home directory and put the test file: <test_file_name.txt> in the project home directory.
 run the following command:
 python3 main.py <test_file_name.txt>
+# The test file should only contain the sql command without any useless empty line.
 
 The output file will be generated at the directory: /output
 the file name is defined by the sql: outputtofile(<table_name>, <output_file_name>.txt)
