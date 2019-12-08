@@ -9,14 +9,14 @@ to test its efficiency and run time via python. Further, we optimize the require
 to observe the performance and whether it can execute correctly and concisely.
 
 
-### Code Example and Tests
+### Tests and output
 ----------------
-If the information exists four files — main.py, DatabaseFunction.py, ConditionObject.py, GeneralFunction.py and
-sales1.txt— then a session with our queries look like the following transcript.
+cd to the project home directory and put the test file: <test_file_name.txt> in the project home directory.
+run the following command:
+python3 main.py <test_file_name.txt>
 
-How to do the test:
-python3 main.py
-
+The output file will be generated at the directory: /output
+the file name is defined by the sql: outputtofile(<table_name>, <output_file_name>.txt)
 
 
 ### Commands
