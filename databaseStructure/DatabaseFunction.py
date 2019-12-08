@@ -1,7 +1,7 @@
 from BTrees.OOBTree import OOBTree
 from databaseStructure import DbObject
-from GeneralFunction import GeneralFunction
-from ConditionObject import ConditionObject
+from databaseStructure.GeneralFunction import GeneralFunction
+from databaseStructure.ConditionObject import ConditionObject
 import operator
 
 
@@ -284,7 +284,7 @@ class DatabaseFunction:
 
         for key in group_dict:
             group_value = group_dict[key].value
-            group_value[-1] = str(group_value[-1] / count_dict[key])
+            group_value[-1] = group_value[-1] / count_dict[key]
         
         return [header for header in group_header] + ['avg_' + avg_header], new_data_type, group_dict
 

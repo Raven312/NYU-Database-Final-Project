@@ -1,4 +1,4 @@
-from GeneralFunction import GeneralFunction
+from databaseStructure.GeneralFunction import GeneralFunction
 import operator
 
 

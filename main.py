@@ -1,16 +1,18 @@
-from GeneralFunction import GeneralFunction
-from ParameterAssignmentTable import ParameterAssignmentTable
+from databaseStructure.GeneralFunction import GeneralFunction
+from databaseStructure.ParameterAssignmentTable import ParameterAssignmentTable
 import time
 
 # This table is for mapping the user input variable and actual table
 parameter_assignment_table = ParameterAssignmentTable()
 
+# user could define which data structure the DB used to store the value
 # default database type is hash
-database_type = input('Please input \'hash\' or \'btree\' to choose the database type you want: ')
-if database_type.lower() not in ['hash', 'btree']:
-    print('Invalid input, database type will be default: hash')
-    database_type = 'hash'
+# database_type = input('Please input \'hash\' or \'btree\' to choose the database type you want: ')
+# if database_type.lower() not in ['hash', 'btree']:
+#     print('Invalid input, database type will be default: hash')
+#     database_type = 'hash'
 
+database_type = 'hash'
 parameter_assignment_table.set_database_type(database_type)
 
 
@@ -196,6 +198,3 @@ def read_test(file_name):
 test_file_name = input("Please copy paste the test file to the home directory of this program and input the file name:")
 
 read_test(test_file_name)
-
-#r = parameter_assignment_table.get_parameter_assignment_table('t4')
-#print(r)
