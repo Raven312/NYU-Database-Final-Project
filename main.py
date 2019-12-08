@@ -1,6 +1,7 @@
 from databaseStructure.GeneralFunction import GeneralFunction
 from databaseStructure.ParameterAssignmentTable import ParameterAssignmentTable
 import time
+import fileinput
 
 # This table is for mapping the user input variable and actual table
 parameter_assignment_table = ParameterAssignmentTable()
@@ -180,10 +181,8 @@ def perform_input_action(assign_name, function_name, variables, input_string):
 
 
 # Read test file by user input file name
-def read_test(file_name):
-    file = open(file_name)
-    line = file.readline()
-    while line:
+def read_test():
+    for line in fileinput.input():
         # Clean space and change line symbol
         line = line.rstrip().strip().replace(" ", "")
         # Get key information
@@ -191,10 +190,5 @@ def read_test(file_name):
         # Perform db action
         perform_input_action(assign_name, action_name, action_parameters, line)
 
-        line = file.readline()
-    file.close()
 
-
-test_file_name = input("Please copy paste the test file to the home directory of this program and input the file name:")
-
-read_test(test_file_name)
+read_test()
