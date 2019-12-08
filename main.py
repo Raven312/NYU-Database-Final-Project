@@ -104,7 +104,7 @@ def perform_input_action(assign_name, function_name, variables, input_string):
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
-        temp_old_table.create_index(variables[1])
+        temp_old_table.create_index(function_name, variables[1])
 
     # Action: join
     if function_name == 'join':
@@ -121,7 +121,7 @@ def perform_input_action(assign_name, function_name, variables, input_string):
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter1)
         table_parameter2 = variables[1]
         temp_old_table2 = parameter_assignment_table.get_parameter_assignment_table(table_parameter2)
-        meta_data, data_type, new_dict = temp_old_table.concat(table_parameter2, temp_old_table2, variables[2])
+        meta_data, data_type, new_dict = temp_old_table.concat(temp_old_table2)
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     # Action: sum
@@ -164,7 +164,11 @@ def perform_input_action(assign_name, function_name, variables, input_string):
                 value_string = ''
                 current_obj = temp_old_table.main_table[key]
                 for value in current_obj.value:
-                    value_string = value_string + str(value) + '|'
+                    if GeneralFunction.check_is_float(str(value)):
+                        value_string = value_string + str(round(value, 4)) + '|'
+                    else:
+                        value_string = value_string + str(value) + '|'
+
                 value_string = value_string[0:len(value_string) - 1]
                 file.writelines(value_string + '\n')
 
@@ -193,5 +197,5 @@ test_file_name = input("Please copy paste the test file to the home directory of
 
 read_test(test_file_name)
 
-r = parameter_assignment_table.get_parameter_assignment_table('t4')
-print(r)
+#r = parameter_assignment_table.get_parameter_assignment_table('t4')
+#print(r)

@@ -1,3 +1,4 @@
+from BTrees.OOBTree import OOBTree
 from databaseStructure import DbObject
 from GeneralFunction import GeneralFunction
 from ConditionObject import ConditionObject
@@ -233,7 +234,7 @@ class DatabaseFunction:
             total_sum += self.main_table[key].value[require_index[0]]
         total_average = total_sum / len(self.main_table)
 
-        return ['avg_' + require_metadata[0]], new_data_type, {None: total_average}
+        return ['avg_' + require_metadata[0]], new_data_type, {None: DbObject.DbObject([total_average])}
 
     # Return sum of the sum_header and group by group_header.
     # type sum_header: str - the column to sum up
@@ -282,7 +283,7 @@ class DatabaseFunction:
                 count_dict[new_key_string] = 1
 
         for key in group_dict:
-            group_value = group_dict[key]
+            group_value = group_dict[key].value
             group_value[-1] = str(group_value[-1] / count_dict[key])
         
         return [header for header in group_header] + ['avg_' + avg_header], new_data_type, group_dict
@@ -290,11 +291,15 @@ class DatabaseFunction:
     # Create index by input metadata.
     # type metadata: str - the column to create index
     # rtype None
-    def create_index(self, metadata):
+    def create_index(self, index_data_type, metadata):
 
         # get the index of parameters in metadata
         require_index = GeneralFunction.get_index_of_metadata(self.metadata, [metadata])
-        new_dic = {}
+        # create index based on hash or btree
+        if index_data_type == 'hash':
+            new_dic = {}
+        else:
+            new_dic = OOBTree()
 
         for key in self.main_table:
             new_key = self.main_table[key].value[require_index[0]]
@@ -328,10 +333,10 @@ class DatabaseFunction:
 
         new_key_string = str(new_key)
         if group_dict.get(new_key_string):
-            value = group_dict[new_key_string]
+            value = group_dict[new_key_string].value
             value[-1] = value[-1] + self.main_table[key].value[target_index[0]]
         else:
-            group_dict[new_key_string] = [k for k in new_key] + [self.main_table[key].value[target_index[0]]]
+            group_dict[new_key_string] = DbObject.DbObject([k for k in new_key] + [self.main_table[key].value[target_index[0]]])
 
         return new_key_string, group_dict
 
@@ -362,14 +367,14 @@ class DatabaseFunction:
     # rtype new_dic: dictionary - new dictionary that copy from this table but only with required columns
     def concat(self, con_table2):
         new_dict = {}
-        if self.metadata == con_table2.metedata:
+        if self.metadata == con_table2.metadata:
             iterator = 0
             for key in self.main_table:
                 new_dict[iterator] = self.main_table[key]
                 iterator += 1
 
-            for key in con_table2:
-                new_dict[iterator] = con_table2[key]
+            for key in con_table2.main_table:
+                new_dict[iterator] = con_table2.main_table[key]
                 iterator += 1
 
         return self.metadata, self.data_type, new_dict
@@ -442,7 +447,7 @@ class DatabaseFunction:
             new_data_type.append(self.data_type[index])
 
         for index, item in enumerate(source_table.metadata):
-            new_metadata.append(current_name + '_' + item)
+            new_metadata.append(source_name + '_' + item)
             new_data_type.append(self.data_type[index])
 
         return new_metadata, new_data_type, new_dict
@@ -479,12 +484,12 @@ class DatabaseFunction:
 
         print(total_sum)
 
-        return ['sum_' + require_metadata[0]], [self.data_type[require_index[0]]], {None: total_sum}
+        return ['sum_' + require_metadata[0]], [self.data_type[require_index[0]]], {None: DbObject.DbObject([total_sum])}
 
-    # Return sum value of the column.
+    # Return count value of the column.
     # type require_metadata: array - desired metadata which exist in this table
-    # rtype require_metadata: array - return the input sum_ + require_metadata
-    # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome average
+    # rtype require_metadata: array - return the input count_ + require_metadata
+    # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome count
     def count(self, require_metadata):
         return ['count_' + require_metadata[0]], ['float'], {None: len(self.main_table)}
 
