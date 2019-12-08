@@ -1,5 +1,5 @@
 from BTrees.OOBTree import OOBTree
-from DatabaseFunction import DatabaseFunction
+from databaseStructure.DatabaseFunction import DatabaseFunction
 
 
 # Table in BTree data structure.

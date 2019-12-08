@@ -1,16 +1,19 @@
-from GeneralFunction import GeneralFunction
-from ParameterAssignmentTable import ParameterAssignmentTable
+from databaseStructure.GeneralFunction import GeneralFunction
+from databaseStructure.ParameterAssignmentTable import ParameterAssignmentTable
 import time
+import fileinput
 
 # This table is for mapping the user input variable and actual table
 parameter_assignment_table = ParameterAssignmentTable()
 
+# user could define which data structure the DB used to store the value
 # default database type is hash
-database_type = input('Please input \'hash\' or \'btree\' to choose the database type you want: ')
-if database_type.lower() not in ['hash', 'btree']:
-    print('Invalid input, database type will be default: hash')
-    database_type = 'hash'
+# database_type = input('Please input \'hash\' or \'btree\' to choose the database type you want: ')
+# if database_type.lower() not in ['hash', 'btree']:
+#     print('Invalid input, database type will be default: hash')
+#     database_type = 'hash'
 
+database_type = 'hash'
 parameter_assignment_table.set_database_type(database_type)
 
 
@@ -104,7 +107,7 @@ def perform_input_action(assign_name, function_name, variables, input_string):
         table_parameter = variables[0]
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter)
         # Passing parameter except the first value as first value is table_parameter
-        temp_old_table.create_index(variables[1])
+        temp_old_table.create_index(function_name, variables[1])
 
     # Action: join
     if function_name == 'join':
@@ -121,7 +124,7 @@ def perform_input_action(assign_name, function_name, variables, input_string):
         temp_old_table = parameter_assignment_table.get_parameter_assignment_table(table_parameter1)
         table_parameter2 = variables[1]
         temp_old_table2 = parameter_assignment_table.get_parameter_assignment_table(table_parameter2)
-        meta_data, data_type, new_dict = temp_old_table.concat(table_parameter2, temp_old_table2, variables[2])
+        meta_data, data_type, new_dict = temp_old_table.concat(temp_old_table2)
         parameter_assignment_table.insert_parameter_assignment_table(assign_name, meta_data, data_type, new_dict)
 
     # Action: sum
@@ -164,7 +167,11 @@ def perform_input_action(assign_name, function_name, variables, input_string):
                 value_string = ''
                 current_obj = temp_old_table.main_table[key]
                 for value in current_obj.value:
-                    value_string = value_string + str(value) + '|'
+                    if GeneralFunction.check_is_float(str(value)):
+                        value_string = value_string + str(round(value, 4)) + '|'
+                    else:
+                        value_string = value_string + str(value) + '|'
+
                 value_string = value_string[0:len(value_string) - 1]
                 file.writelines(value_string + '\n')
 
@@ -174,10 +181,8 @@ def perform_input_action(assign_name, function_name, variables, input_string):
 
 
 # Read test file by user input file name
-def read_test(file_name):
-    file = open(file_name)
-    line = file.readline()
-    while line:
+def read_test():
+    for line in fileinput.input():
         # Clean space and change line symbol
         line = line.rstrip().strip().replace(" ", "")
         # Get key information
@@ -185,13 +190,5 @@ def read_test(file_name):
         # Perform db action
         perform_input_action(assign_name, action_name, action_parameters, line)
 
-        line = file.readline()
-    file.close()
 
-
-test_file_name = input("Please copy paste the test file to the home directory of this program and input the file name:")
-
-read_test(test_file_name)
-
-r = parameter_assignment_table.get_parameter_assignment_table('t4')
-print(r)
+read_test()

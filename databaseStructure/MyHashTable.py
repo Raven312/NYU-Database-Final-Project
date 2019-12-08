@@ -1,4 +1,4 @@
-from DatabaseFunction import DatabaseFunction
+from databaseStructure.DatabaseFunction import DatabaseFunction
 
 
 # Table in Hash data structure.
