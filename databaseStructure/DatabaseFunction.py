@@ -489,7 +489,7 @@ class DatabaseFunction:
     # rtype require_metadata: array - return the input count_ + require_metadata
     # rtype new_dic: dictionary - new dictionary that have key is none and value is the outcome count
     def count(self, require_metadata):
-        return ['count_' + require_metadata[0]], ['float'], {None: len(self.main_table)}
+        return ['count_' + require_metadata[0]], ['float'], {None: DbObject.DbObject([len(self.main_table)])}
 
     # Return count of the count_header and group by count_header.
     # type count_header: str - the column to count as count
