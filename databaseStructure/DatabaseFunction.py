@@ -482,8 +482,6 @@ class DatabaseFunction:
         for key in self.main_table:
             total_sum += int(self.main_table[key].value[require_index[0]])
 
-        print(total_sum)
-
         return ['sum_' + require_metadata[0]], [self.data_type[require_index[0]]], {None: DbObject.DbObject([total_sum])}
 
     # Return count value of the column.
